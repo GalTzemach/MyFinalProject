@@ -71,7 +71,7 @@ class DBManager(metaclass=Singleton.Singleton):
         # prepare a cursor object using cursor() method
         cursor = DBManager.db.cursor()
 
-        # Prepare SQL query to INSERT a record into the database.
+        # Prepare SQL query 
         sql = """INSERT INTO 
                  users
                  (first_name, last_name, email, phone_number, password)
@@ -104,13 +104,13 @@ class DBManager(metaclass=Singleton.Singleton):
         # prepare a cursor object using cursor() method
         cursor = DBManager.db.cursor()
 
-        # Prepare SQL query to INSERT a record into the database.
+        # Prepare SQL query 
         sql = """SELECT id FROM stocks"""
         try:
             # Execute the SQL command
             cursor.execute(sql)
 
-            # Fetch all the rows in a tuple of tuples.
+            # Fetch
             results = cursor.fetchall()
         except BaseException as exception:
             print("--- MyError: getAllStocksID is failed")
@@ -125,7 +125,7 @@ class DBManager(metaclass=Singleton.Singleton):
         # prepare a cursor object using cursor() method
         cursor = DBManager.db.cursor()
 
-        # Prepare SQL query to INSERT a record into the database.
+        # Prepare SQL query 
         sql = """SELECT COUNT(id) FROM tweets
                  WHERE stock_id = %d AND created_at LIKE \"%s%%\"""" % \
                  (id, date.date())
@@ -134,7 +134,7 @@ class DBManager(metaclass=Singleton.Singleton):
             # Execute the SQL command
             cursor.execute(sql)
 
-            # Fetch all the rows in a tuple of tuples.
+            # Fetch
             results = cursor.fetchall()
         except BaseException as exception:
             print("--- MyError: getCountTweetsOfStockInDay is failed")
@@ -149,7 +149,7 @@ class DBManager(metaclass=Singleton.Singleton):
         # prepare a cursor object using cursor() method
         cursor = DBManager.db.cursor()
 
-        # Prepare SQL query to INSERT a record into the database.
+        # Prepare SQL query 
         sql = """SELECT name, symbol FROM stocks
                  WHERE id = %d""" % \
                  (id)
@@ -158,7 +158,7 @@ class DBManager(metaclass=Singleton.Singleton):
             # Execute the SQL command
             cursor.execute(sql)
 
-            # Fetch all the rows in a tuple of tuples.
+            # Fetch
             results = cursor.fetchone()
         except BaseException as exception:
             print("--- MyError: getNameAndSymbolOfStock is failed")
@@ -190,7 +190,7 @@ class DBManager(metaclass=Singleton.Singleton):
 
 
 
-        # Prepare SQL query to INSERT a record into the database.
+        # Prepare SQL query 
         sql = """INSERT INTO tweets
                  (tweet_id, stock_id, the_tweet, text, created_at, followers_count, filter)
                  VALUES 
@@ -206,9 +206,63 @@ class DBManager(metaclass=Singleton.Singleton):
             DBManager.db.rollback()
             print("--- MyError: Insert tweet failed")
             print("--- Exception: ", exception)
-            aa = json.loads(tweetStr)
-            #print(json.dumps(aa, indent=4))
             return False
         else:
             print("--- MySuccess: Insert tweet successfully.")
+            return True
+
+
+    def getTextOfTweetToAnalyze(self):
+        # prepare a cursor object using cursor() method
+        cursor = DBManager.db.cursor()
+
+        # Prepare SQL query 
+        sql = """SELECT text,id FROM tweets
+                 WHERE ibm_analyzed_text IS NULL AND sentiment IS NULL AND emotions IS NULL
+                 LIMIT 1"""
+
+        try:
+            # Execute the SQL command
+            cursor.execute(sql)
+
+            # Fetch
+            results = cursor.fetchone()
+        except BaseException as exception:
+            print("--- MyError: getTextOfTweetToAnalyze is failed")
+            print("--- Exception: ", exception)
+            return False
+        else:
+            print("--- MySuccess: getTextOfTweetToAnalyze is successfully.")
+            return results
+
+
+    def addAnalyzeToTweet(self, textAnalyzed, id):
+        # prepare a cursor object using cursor() method
+        cursor = DBManager.db.cursor()
+
+        ibm_analyzed_text = json.dumps(textAnalyzed)
+        sentiment = textAnalyzed['sentiment']['document']['score']
+        emotions = json.dumps(textAnalyzed['emotion']['document'])
+
+        # Prepare SQL query 
+        sql = """UPDATE  
+                 tweets
+                 SET
+                 ibm_analyzed_text = '%s', sentiment = '%f', emotions = '%s'
+                 WHERE
+                 id = %d""" % \
+                 (PyMySQL.escape_string(ibm_analyzed_text), sentiment, emotions, id)
+        try:
+           # Execute the SQL command
+           cursor.execute(sql)
+           # Commit your changes in the database
+           DBManager.db.commit()
+        except BaseException as exception:
+           # Rollback in case there is any error
+           DBManager.db.rollback()
+           print("--- MyError: Insert analyzed to tweet failed")
+           print("--- Exception: ", exception)
+           return False
+        else:
+            print("--- MySuccess: Insert analyzed to tweet is successfully.")
             return True
