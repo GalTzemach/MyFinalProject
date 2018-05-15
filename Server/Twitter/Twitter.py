@@ -6,7 +6,7 @@ from DB import DBManager
 class Twitter:
 
     api = None # Initialized in function readTwitterKeysFromFile()
-    threshold = 100 # The number of tweets to be searched for each stock per day
+    threshold = 20 # The number of tweets to be searched for each stock per day
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -47,7 +47,7 @@ class Twitter:
         try:
             twitterKeysFile = open(path,"r") # r Opens a file for reading only.
         except FileNotFoundError:
-            print("MY-ERROR: In readTwitterKeysFromFile function, File ", path, " not found.")
+            print("--- MyError: In readTwitterKeysFromFile function, File ", path, " not found.")
             return False
 
         # Read all file
@@ -87,13 +87,14 @@ class Twitter:
         while dateToSearch < now:
             minTuple = self.getMinTweetsOfStockInDay(dateToSearch) # [0]= count, [1]=id
             if minTuple == False:
-                print("MY-ERROR: whatToSearch is faild.")
+                print("--- MyError: whatToSearch is faild.")
                 return False
             min = minTuple[0]
             id = minTuple[1]
             while min < Twitter.threshold:
                 #search tweets for id
-                print("In whatToSearch, dateToSearch is %s", dateToSearch)
+                print("--- In whatToSearch function ---")
+                print("--- dateToSearch is: ", dateToSearch, ", for id :", id, ".")
                 listOfTweets = self.searchTweets(id, dateToSearch)
                 for tweet in listOfTweets:
                     DBManager.DBManager().addTweet(id, tweet)
@@ -126,6 +127,7 @@ class Twitter:
 
 
     def searchTweets(self, id, date):
+        print("--- In searchTweets function ---")
         stockNameSymbol = DBManager.DBManager.getNameAndSymbolOfStock(id) # [0]=name, [1]=symbol
         name = stockNameSymbol[0]
         symbol = stockNameSymbol[1]
@@ -139,7 +141,7 @@ class Twitter:
 
         resultType = "mixed" # mixed / recent / popular
 
-        count = 200 # Now 100 is a max
+        count = 100 # 100 is a max of twitter API
 
         if date.date() == datetime.datetime.now().date():
             since = (date - datetime.timedelta(days=1)).date()
@@ -147,10 +149,12 @@ class Twitter:
         elif date.date() <= datetime.datetime.now().date():
             since = date.date()
             until = (date + datetime.timedelta(days=1)).date()
-
-        statuses = Twitter.api.GetSearch(term=term, until=until, since=since, count=count, lang=lang, result_type=resultType)
-        print(len(statuses), " Statuses returned!")
-        return statuses
+        try:
+            statuses = Twitter.api.GetSearch(term=term, until=until, since=since, count=count, lang=lang, result_type=resultType)
+            print("---", len(statuses), " Statuses returned!")
+            return statuses
+        except BaseException as exception:
+            print("--- Exception: ", exception)
 
 
     def printTwitterClass(self, twitterClass):
@@ -187,7 +191,7 @@ class Twitter:
             print(json.dumps(search_dict, indent=4))
             print(json.dumps(application_dict, indent=4))
         except KeyError:
-            print("MY-ERROR: In checkRateLimit function, The key is not found in the dictionary.")
+            print("--- MyError: In checkRateLimit function, The key is not found in the dictionary.")
 
 
 
