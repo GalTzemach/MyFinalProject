@@ -27,14 +27,15 @@ class DBManager(metaclass=Singleton.Singleton):
             #DBManager.db.close()
             pass
         else:
-            print("--- MyPrint: Could not connect to database.")
+            print("--- MyError: Could not connect to database.")
 
 
 
     def openDatabaseConnection(self, userName, password, DBName):
         try:
             DBManager.db = PyMySQL.connect("localhost", userName, password, DBName, use_unicode=True, charset="utf8mb4")
-        except:
+        except BaseException as exception:
+            print(exception)
             return False
 
         return True
@@ -103,7 +104,6 @@ class DBManager(metaclass=Singleton.Singleton):
     def getAllStocksID(self):
         # prepare a cursor object using cursor() method
         cursor = DBManager.db.cursor()
-
         # Prepare SQL query 
         sql = """SELECT id FROM stocks"""
         try:
@@ -266,3 +266,97 @@ class DBManager(metaclass=Singleton.Singleton):
         else:
             print("--- MySuccess: Insert analyzed to tweet is successfully.")
             return True
+
+
+    def getLastDateOfStockPricesHistory(self, id):
+        # prepare a cursor object using cursor() method
+        cursor = DBManager.db.cursor()
+
+        # Prepare SQL query 
+        sql = """SELECT 
+        MAX(date) 
+        FROM prices_history 
+        WHERE stock_id=%d""" % \
+        (id)
+
+        try:
+            # Execute the SQL command
+            cursor.execute(sql)
+
+            # Fetch
+            results = cursor.fetchone()
+        except BaseException as exception:
+            print("--- MyError: getLastDateOfStockPricesHistory is failed")
+            print("--- Exception: ", exception)
+            return False
+        else:
+            print("--- MySuccess: getLastDateOfStockPricesHistory is successfully.")
+            return results
+
+
+    def getSymbolOfStockByID(self, id):
+        # prepare a cursor object using cursor() method
+        cursor = DBManager.db.cursor()
+
+        # Prepare SQL query 
+        sql = """SELECT 
+        symbol 
+        FROM stocks 
+        WHERE id=%d""" % \
+        (id)
+
+        try:
+            # Execute the SQL command
+            cursor.execute(sql)
+
+            # Fetch
+            results = cursor.fetchone()
+        except BaseException as exception:
+            print("--- MyError: getSymbolOfStockByID is failed")
+            print("--- Exception: ", exception)
+            return False
+        else:
+            print("--- MySuccess: getSymbolOfStockByID is successfully.")
+            return results
+
+
+    def addPricesHistory(self, id, date, open, high, low, close, volume):
+        # prepare a cursor object using cursor() method
+        cursor = DBManager.db.cursor()
+
+        # Prepare SQL query 
+        sql = """INSERT INTO 
+                 prices_history
+                 (stock_id, date, open, high, low, close, volume)
+                 VALUES 
+                 ('%d', '%s', '%f', '%f', '%f', '%f', '%f' )""" % \
+                 (id, date, open, high, low, close, volume)
+        try:
+           # Execute the SQL command
+           cursor.execute(sql)
+           # Commit your changes in the database
+           DBManager.db.commit()
+        except BaseException as exception:
+           # Rollback in case there is any error
+           DBManager.db.rollback()
+           print("--- MyError: Insert PricesHistory failed")
+           print("--- Exception: ", exception)
+           return False
+        else:
+            print("--- MySuccess: Insert PricesHistory successfully.")
+            return True
+
+
+    def priceHistoryDataframeToAdd(self, id, results):
+
+        for i in range(len(results)):
+            row = results.iloc[i]
+
+            date = row.name[1]
+            open = row['Open']
+            high = row['High']
+            low  = row['Low']
+            close = row['Close']
+            volume = row['Volume']
+
+            self.addPricesHistory(id, date, open, high, low, close, volume)

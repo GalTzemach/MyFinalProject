@@ -107,7 +107,7 @@ class Twitter:
 
     def getMinTweetsOfStockInDay(self, date):
         allStocksID = DBManager.DBManager().getAllStocksID()
-        if allStocksID != False:
+        if allStocksID:
             min = Twitter.threshold + 201 # 200(or 100) This is the maximum number of tweets you can search per call
             idOfMin = None
 

@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>167e05c3-562c-4d2e-b864-a17dc21be3c0</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>Main.py</StartupFile>
+    <StartupFile>TestPlots\module1.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -37,6 +37,12 @@
     <Compile Include="ServerApp.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="TestPlots\module1.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="TestPlots\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Twitterr\tw.py">
       <SubType>Code</SubType>
     </Compile>
@@ -54,6 +60,7 @@
     <Folder Include="DB\" />
     <Folder Include="C:\Users\Gal Tzemach\source\repos\MyFinalProject\MyFinalProject\Twitterr\" />
     <Folder Include="Quandl\" />
+    <Folder Include="TestPlots\" />
     <Folder Include="Twitterr\" />
     <Folder Include="UI\" />
     <Folder Include="Watson\" />

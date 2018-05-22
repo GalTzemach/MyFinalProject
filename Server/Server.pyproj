@@ -27,6 +27,18 @@
     <Compile Include="DB\__init__.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="PandasDatareader\PandasDatareader.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PandasDatareader\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Quandl\Quandl.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Quandl\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Server.py" />
     <Compile Include="Singleton.py">
       <SubType>Code</SubType>
@@ -46,6 +58,9 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="DB\" />
+    <Folder Include="C:\Users\Gal Tzemach\source\repos\MyFinalProject\Server\PandasDatareader\" />
+    <Folder Include="PandasDatareader\" />
+    <Folder Include="Quandl\" />
     <Folder Include="Twitter\" />
     <Folder Include="Watson\" />
   </ItemGroup>
