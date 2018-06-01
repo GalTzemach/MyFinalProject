@@ -19,7 +19,7 @@ class Watson(object):
             pass
 
     def readWatsonKeysFromFile(self):
-        print("--- In readWatsonKeysFromFile function ---")
+        #print("--- In readWatsonKeysFromFile function ---")
         path = "C:\\Users\\Gal Tzemach\\Desktop\\watsonKeys.txt"
         # Open a file
         try:
@@ -57,7 +57,7 @@ class Watson(object):
 
 
     def analyze(self, text):
-        print("--- In analyze function ---")
+        #print("--- In analyze function ---")
 
         if text == None:
             print("The function analyze() received an empty parameter")

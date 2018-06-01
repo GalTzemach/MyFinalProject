@@ -15,7 +15,7 @@ class Quandl(object):
 
 
     def readQuandlKeysFromFile():
-        print("--- In readQuandlKeysFromFile function ---")
+        #print("--- In readQuandlKeysFromFile function ---")
         path = "C:\\Users\\Gal Tzemach\\Desktop\\quandlKeys.txt"
         # Open a file
         try:

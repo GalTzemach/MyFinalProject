@@ -2,6 +2,8 @@ import pandas_datareader.data as web
 #from datetime 
 import datetime
 from DB import DBManager
+import matplotlib.pyplot as plt
+import seaborn as sb
 
 class PandasDatareder(object):
     """description of class"""
@@ -50,8 +52,14 @@ class PandasDatareder(object):
         except BaseException as exception:
              print("--- Exception: ", exception)
 
-        #print(type(results))
-        #print(results)
+        print(type(results))
+        print(results)
+
+        r0 = results.loc['AAPL']
+        print(type(r0))
+        print(r0)
+        sb.regplot(x = "Open", y = "Close", data = r0)
+        plt.show()
 
         DBManager.DBManager().priceHistoryDataframeToAdd(id, results)
 

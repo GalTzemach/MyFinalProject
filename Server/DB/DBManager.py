@@ -91,7 +91,7 @@ class DBManager(metaclass=Singleton.Singleton):
            print("--- Exception: ", exception)
            return False
         else:
-            print("--- MySuccess: Insert user successfully.")
+            #print("--- MySuccess: Insert user successfully.")
             return True
 
 
@@ -117,7 +117,7 @@ class DBManager(metaclass=Singleton.Singleton):
             print("--- Exception: ", exception)
             return False
         else:
-            print("--- MySuccess: getAllStocksID is successfully.")
+            #print("--- MySuccess: getAllStocksID is successfully.")
             return results
 
 
@@ -141,7 +141,7 @@ class DBManager(metaclass=Singleton.Singleton):
             print("--- Exception: ", exception)
             return False
         else:
-            print("--- MySuccess: getCountTweetsOfStockInDay of id ", id, " is successfully.")
+            #print("--- MySuccess: getCountTweetsOfStockInDay of id ", id, " is successfully.")
             return results[0][0]
 
 
@@ -165,7 +165,7 @@ class DBManager(metaclass=Singleton.Singleton):
             print("--- Exception: ", exception)
             return False
         else:
-            print("--- MySuccess: getNameAndSymbolOfStock is successfully.")
+            #print("--- MySuccess: getNameAndSymbolOfStock is successfully.")
             return results
 
 
@@ -208,7 +208,7 @@ class DBManager(metaclass=Singleton.Singleton):
             print("--- Exception: ", exception)
             return False
         else:
-            print("--- MySuccess: Insert tweet successfully.")
+            #print("--- MySuccess: Insert tweet successfully.")
             return True
 
 
@@ -232,7 +232,7 @@ class DBManager(metaclass=Singleton.Singleton):
             print("--- Exception: ", exception)
             return False
         else:
-            print("--- MySuccess: getTextOfTweetToAnalyze is successfully.")
+            #print("--- MySuccess: getTextOfTweetToAnalyze is successfully.")
             return results
 
 
@@ -264,7 +264,7 @@ class DBManager(metaclass=Singleton.Singleton):
            print("--- Exception: ", exception)
            return False
         else:
-            print("--- MySuccess: Insert analyzed to tweet is successfully.")
+            #print("--- MySuccess: Insert analyzed to tweet is successfully.")
             return True
 
 
@@ -290,7 +290,7 @@ class DBManager(metaclass=Singleton.Singleton):
             print("--- Exception: ", exception)
             return False
         else:
-            print("--- MySuccess: getLastDateOfStockPricesHistory is successfully.")
+            #print("--- MySuccess: getLastDateOfStockPricesHistory is successfully.")
             return results
 
 
@@ -316,7 +316,7 @@ class DBManager(metaclass=Singleton.Singleton):
             print("--- Exception: ", exception)
             return False
         else:
-            print("--- MySuccess: getSymbolOfStockByID is successfully.")
+            #print("--- MySuccess: getSymbolOfStockByID is successfully.")
             return results
 
 
@@ -343,7 +343,7 @@ class DBManager(metaclass=Singleton.Singleton):
            print("--- Exception: ", exception)
            return False
         else:
-            print("--- MySuccess: Insert PricesHistory successfully.")
+            #print("--- MySuccess: Insert PricesHistory successfully.")
             return True
 
 
@@ -360,3 +360,24 @@ class DBManager(metaclass=Singleton.Singleton):
             volume = row['Volume']
 
             self.addPricesHistory(id, date, open, high, low, close, volume)
+
+
+    def getAllTweetsCountInDay(self, dateToSearch):
+        allId = self.getAllStocksID()
+        if allId == False:
+            print("--- MyError: getAllTweetsCountInDay is failed")
+            return False
+
+        idCountDict = {}
+
+        for id in allId:
+            countTweets = self.getCountTweetsOfStockInDay(id[0], dateToSearch)
+            if countTweets == False and countTweets != 0:
+                print("--- MyError: getAllTweetsCountInDay is failed")
+                return False
+            else:
+                idCountDict[id[0]] = countTweets
+
+        return idCountDict
+
+        
