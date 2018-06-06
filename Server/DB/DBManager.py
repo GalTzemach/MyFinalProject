@@ -169,24 +169,25 @@ class DBManager(metaclass=Singleton.Singleton):
             return results
 
 
-    def addTweet(self, id, tweet):
+    def addTweet(self, id, tweet, term):
         # prepare a cursor object using cursor() method
         cursor = DBManager.db.cursor()
 
-        tweetStr = json.dumps(tweet._json)
+        tweetStr = json.dumps(tweet)
+        print(json.dumps(tweet, indent=4))
 
-        tweet_id = tweet._json['id']
-        text = tweet._json['text']
-        created_at = tweet._json['created_at']
+        tweet_id = tweet['id']
+        text = tweet['text']
+        created_at = tweet['created_at']
         createdAtDateTime = datetime.datetime.strptime(created_at, "%a %b %d %H:%M:%S %z %Y")
         createdAtTimestamp = createdAtDateTime.strftime('%Y-%m-%d %H:%M:%S') # Without +0000
 
-        if 'followers_count' in tweet._json['user']:
-            followers_count = tweet._json['user']['followers_count']
+        if 'followers_count' in tweet['user']:
+            followers_count = tweet['user']['followers_count']
         else:
             followers_count = 0
 
-        myFilter = "term=nameLower OR nameCapitalize OR nameUpper AND #$symbol, lang=en, resultType=mixed, count=200" #Gal
+        myFilter = term
 
 
 
@@ -210,6 +211,49 @@ class DBManager(metaclass=Singleton.Singleton):
         else:
             #print("--- MySuccess: Insert tweet successfully.")
             return True
+
+
+   # def addTweet(self, id, tweet):
+   #     # prepare a cursor object using cursor() method
+   #     cursor = DBManager.db.cursor()
+
+   #     tweetStr = json.dumps(tweet)
+
+   #     tweet_id = tweet._json['id']
+   #     text = tweet._json['text']
+   #     created_at = tweet._json['created_at']
+   #     createdAtDateTime = datetime.datetime.strptime(created_at, "%a %b %d %H:%M:%S %z %Y")
+   #     createdAtTimestamp = createdAtDateTime.strftime('%Y-%m-%d %H:%M:%S') # Without +0000
+
+   #     if 'followers_count' in tweet._json['user']:
+   #         followers_count = tweet._json['user']['followers_count']
+   #     else:
+   #         followers_count = 0
+
+   #     myFilter = "term=nameLower OR nameCapitalize OR nameUpper AND #$symbol, lang=en, resultType=mixed, count=200" #Gal
+
+
+
+   #     # Prepare SQL query 
+   #     sql = """INSERT INTO tweets
+   #              (tweet_id, stock_id, the_tweet, text, created_at, followers_count, filter)
+   #              VALUES 
+   #              ('%d', '%d', '%s', '%s', '%s', '%d', '%s')""" % \
+   #              (tweet_id, id, PyMySQL.escape_string(tweetStr),PyMySQL.escape_string(text), createdAtTimestamp, followers_count, myFilter)
+   #     try:
+   #        # Execute the SQL command
+   #        cursor.execute(sql)
+   #        # Commit your changes in the database
+   #        DBManager.db.commit()
+   #     except BaseException as exception:
+			## Rollback in case there is any error
+   #         DBManager.db.rollback()
+   #         print("--- MyError: Insert tweet failed")
+   #         print("--- Exception: ", exception)
+   #         return False
+   #     else:
+   #         #print("--- MySuccess: Insert tweet successfully.")
+   #         return True
 
 
     def getTextOfTweetToAnalyze(self):

@@ -2,6 +2,8 @@ from Twitter import Twitter
 from DB import DBManager
 from Watson import Watson
 from PandasDatareader import PandasDatareader
+from Twitter import module1
+import ClassForTests
 
 class Server():
 
@@ -10,6 +12,8 @@ class Server():
        #managerDB = DBManager.DBManager()
        #watson = Watson.Watson()
        #pandasDatareder = PandasDatareader.PandasDatareder()
+       #t = module1.TwitterAPIII()
+       #ClassForTests.ClassForTests()
 
 
 
