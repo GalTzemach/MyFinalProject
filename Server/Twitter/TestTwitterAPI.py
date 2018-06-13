@@ -2,7 +2,7 @@ import json
 from TwitterAPI import TwitterAPI, TwitterPager, TwitterResponse
 
 
-class TwitterAPIII:
+class TestTwitterAPI:
 
     api = None # Initialized in function readTwitterKeysFromFile()
 

@@ -145,7 +145,7 @@ class DBManager(metaclass=Singleton.Singleton):
             return results[0][0]
 
 
-    def getNameAndSymbolOfStock(id):
+    def getNameAndSymbolOfStock(self, id):
         # prepare a cursor object using cursor() method
         cursor = DBManager.db.cursor()
 
@@ -169,12 +169,12 @@ class DBManager(metaclass=Singleton.Singleton):
             return results
 
 
-    def addTweet(self, id, tweet, term):
+    def addTweet(self, id, tweet, nextRequest):
         # prepare a cursor object using cursor() method
         cursor = DBManager.db.cursor()
 
         tweetStr = json.dumps(tweet)
-        print(json.dumps(tweet, indent=4))
+        #print(json.dumps(tweet, indent=4))
 
         tweet_id = tweet['id']
         text = tweet['text']
@@ -187,16 +187,16 @@ class DBManager(metaclass=Singleton.Singleton):
         else:
             followers_count = 0
 
-        myFilter = term
+        nextRequest
 
 
 
         # Prepare SQL query 
         sql = """INSERT INTO tweets
-                 (tweet_id, stock_id, the_tweet, text, created_at, followers_count, filter)
+                 (tweet_id, stock_id, the_tweet, text, created_at, followers_count, next_request)
                  VALUES 
                  ('%d', '%d', '%s', '%s', '%s', '%d', '%s')""" % \
-                 (tweet_id, id, PyMySQL.escape_string(tweetStr),PyMySQL.escape_string(text), createdAtTimestamp, followers_count, myFilter)
+                 (tweet_id, id, PyMySQL.escape_string(tweetStr),PyMySQL.escape_string(text), createdAtTimestamp, followers_count, PyMySQL.escape_string(nextRequest))
         try:
            # Execute the SQL command
            cursor.execute(sql)
