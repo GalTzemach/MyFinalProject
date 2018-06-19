@@ -173,11 +173,11 @@ class DBManager(metaclass=Singleton.Singleton):
         # prepare a cursor object using cursor() method
         cursor = DBManager.db.cursor()
 
-        tweetStr = json.dumps(tweet)
+        tweetStr = json.dumps(tweet, indent = 4)
         #print(json.dumps(tweet, indent=4))
 
         tweet_id = tweet['id']
-        text = tweet['text']
+        text = tweet['full_text'].replace("\n", " ")
         created_at = tweet['created_at']
         createdAtDateTime = datetime.datetime.strptime(created_at, "%a %b %d %H:%M:%S %z %Y")
         createdAtTimestamp = createdAtDateTime.strftime('%Y-%m-%d %H:%M:%S') # Without +0000
@@ -186,10 +186,6 @@ class DBManager(metaclass=Singleton.Singleton):
             followers_count = tweet['user']['followers_count']
         else:
             followers_count = 0
-
-        nextRequest
-
-
 
         # Prepare SQL query 
         sql = """INSERT INTO tweets
@@ -256,13 +252,14 @@ class DBManager(metaclass=Singleton.Singleton):
    #         return True
 
 
-    def getTextOfTweetToAnalyze(self):
+    def getTextAndIdsOfTweetToAnalyze(self):
         # prepare a cursor object using cursor() method
         cursor = DBManager.db.cursor()
 
         # Prepare SQL query 
-        sql = """SELECT text,id FROM tweets
-                 WHERE ibm_analyzed_text IS NULL AND sentiment IS NULL AND emotions IS NULL
+        sql = """SELECT text, id, stock_id
+                 FROM tweets
+                 WHERE ibm_analyzed_text IS NULL AND sentiment IS NULL
                  LIMIT 1"""
 
         try:
@@ -272,11 +269,11 @@ class DBManager(metaclass=Singleton.Singleton):
             # Fetch
             results = cursor.fetchone()
         except BaseException as exception:
-            print("--- MyError: getTextOfTweetToAnalyze is failed")
+            print("--- MyError: getTextAndIdsOfTweetToAnalyze is failed")
             print("--- Exception: ", exception)
             return False
         else:
-            #print("--- MySuccess: getTextOfTweetToAnalyze is successfully.")
+            #print("--- MySuccess: getTextAndIdsOfTweetToAnalyze is successfully.")
             return results
 
 
@@ -284,18 +281,25 @@ class DBManager(metaclass=Singleton.Singleton):
         # prepare a cursor object using cursor() method
         cursor = DBManager.db.cursor()
 
-        ibm_analyzed_text = json.dumps(textAnalyzed)
-        sentiment = textAnalyzed['sentiment']['document']['score']
-        emotions = json.dumps(textAnalyzed['emotion']['document'])
+        if isinstance(textAnalyzed, str):
+            ibm_analyzed_text = textAnalyzed
+            sentiment = -3
+        else:
+            ibm_analyzed_text = json.dumps(textAnalyzed, indent = 4)
+
+            if 'sentiment' in textAnalyzed:
+                if 'document' in textAnalyzed['sentiment']:
+                    sentiment = textAnalyzed['sentiment']['document']['score']
+                else:
+                    sentiment = -2
+            else:
+                sentiment = -2
 
         # Prepare SQL query 
-        sql = """UPDATE  
-                 tweets
-                 SET
-                 ibm_analyzed_text = '%s', sentiment = '%f', emotions = '%s'
-                 WHERE
-                 id = %d""" % \
-                 (PyMySQL.escape_string(ibm_analyzed_text), sentiment, emotions, id)
+        sql = """UPDATE tweets
+                 SET ibm_analyzed_text = '%s', sentiment = '%f'
+                 WHERE id = %d""" % \
+                 (PyMySQL.escape_string(ibm_analyzed_text), sentiment, id)
         try:
            # Execute the SQL command
            cursor.execute(sql)
@@ -317,8 +321,7 @@ class DBManager(metaclass=Singleton.Singleton):
         cursor = DBManager.db.cursor()
 
         # Prepare SQL query 
-        sql = """SELECT 
-        MAX(date) 
+        sql = """SELECT MAX(date) 
         FROM prices_history 
         WHERE stock_id=%d""" % \
         (id)
@@ -364,13 +367,27 @@ class DBManager(metaclass=Singleton.Singleton):
             return results
 
 
+    def addPriceHistoryDataframe(self, id, priceHistory):
+
+        for i in range(len(priceHistory)):
+            row = priceHistory.iloc[i]
+
+            date = row.name[1]
+            open = row['Open']
+            high = row['High']
+            low  = row['Low']
+            close = row['Close']
+            volume = row['Volume']
+
+            self.addPricesHistory(id, date, open, high, low, close, volume)
+
+
     def addPricesHistory(self, id, date, open, high, low, close, volume):
         # prepare a cursor object using cursor() method
         cursor = DBManager.db.cursor()
 
         # Prepare SQL query 
-        sql = """INSERT INTO 
-                 prices_history
+        sql = """INSERT INTO prices_history
                  (stock_id, date, open, high, low, close, volume)
                  VALUES 
                  ('%d', '%s', '%f', '%f', '%f', '%f', '%f' )""" % \
@@ -391,21 +408,6 @@ class DBManager(metaclass=Singleton.Singleton):
             return True
 
 
-    def priceHistoryDataframeToAdd(self, id, results):
-
-        for i in range(len(results)):
-            row = results.iloc[i]
-
-            date = row.name[1]
-            open = row['Open']
-            high = row['High']
-            low  = row['Low']
-            close = row['Close']
-            volume = row['Volume']
-
-            self.addPricesHistory(id, date, open, high, low, close, volume)
-
-
     def getAllTweetsCountInDay(self, dateToSearch):
         allId = self.getAllStocksID()
         if allId == False:
@@ -424,4 +426,95 @@ class DBManager(metaclass=Singleton.Singleton):
 
         return idCountDict
 
+
+    def getClosePricePerDateById(self, id):
+        # prepare a cursor object using cursor() method
+        cursor = DBManager.db.cursor()
+
+        # Prepare SQL query 
+        sql = """SELECT date, close 
+                 FROM prices_history
+                 WHERE stock_id = %d""" % (id)
+        try:
+            # Execute the SQL command
+            cursor.execute(sql)
+
+            # Fetch
+            results = cursor.fetchall()
+        except BaseException as exception:
+            print("--- MyError: getClosePricePerDateById is failed")
+            print("--- Exception: ", exception)
+            return False
+        else:
+            #print("--- MySuccess: getClosePricePerDateById is successfully.")
+            dateClose = {}
+            for res in results:
+                dateClose[res[0]] = res[1]
+            return dateClose
+
+
+    def getAvgSentimentPerDateById(self, id):
+        dateSentiment = {}
+
+        # Get all uniqe Dates of tweets of stock
+        allDatesOfTweets = self.getAllDatesOfTweetsById(id)
+
+        for date in allDatesOfTweets:
+            # Get all sentiment of stock per date
+            allSentimentPerDateAndId = self.getSentimentByDateAndId(date[0], id)
+
+            # Create AVG of sentiment per date
+            sumOfSentiment = 0
+            for sentiment in allSentimentPerDateAndId:
+                sumOfSentiment += sentiment[0]
+            avgSentimentPerDate = sumOfSentiment / len(allSentimentPerDateAndId)
+
+            dateSentiment[date[0]] = avgSentimentPerDate
+
+        return dateSentiment
         
+
+    def getAllDatesOfTweetsById(self, id):
+        # prepare a cursor object using cursor() method
+        cursor = DBManager.db.cursor()
+
+        # Prepare SQL query 
+        sql = """SELECT DISTINCT date(created_at) 
+                 FROM tweets
+                 WHERE stock_id = %d""" % (id)
+        try:
+            # Execute the SQL command
+            cursor.execute(sql)
+
+            # Fetch
+            results = cursor.fetchall()
+        except BaseException as exception:
+            print("--- MyError: getAllDatesOfTweetsById is failed")
+            print("--- Exception: ", exception)
+            return False
+        else:
+            #print("--- MySuccess: getAllDatesOfTweetsById is successfully.")
+            return results
+
+
+    def getSentimentByDateAndId(self, date, id):
+        # prepare a cursor object using cursor() method
+        cursor = DBManager.db.cursor()
+
+        # Prepare SQL query 
+        sql = """SELECT sentiment 
+                 FROM tweets
+                 WHERE created_at LIKE \"%%%s%%\" and stock_id = %d""" % (date, id)
+        try:
+            # Execute the SQL command
+            cursor.execute(sql)
+
+            # Fetch
+            results = cursor.fetchall()
+        except BaseException as exception:
+            print("--- MyError: getSentimentByDateAndId is failed")
+            print("--- Exception: ", exception)
+            return False
+        else:
+            #print("--- MySuccess: getSentimentByDateAndId is successfully.")
+            return results

@@ -13,55 +13,70 @@ class PandasDatareder(object):
         super().__init__(**kwargs)
 
         self.whatToretrieve()
-        #retrieveStockPriceHistory
 
 
     def whatToretrieve(self):
-        start = datetime.datetime(2018, 1, 1)
+
+        # Set dates
+        start = datetime.datetime(2018, 5, 1)
         start = start.date()
         end = datetime.datetime.now()
         end = end.date()
         
+        # Get all stock id
         allStockID = DBManager.DBManager().getAllStocksID()
+
         if allStockID:
             for stockID in allStockID:
+                # Get the id
                 id = stockID[0]
 
+                # Getting the last date already exists
                 lastDate = DBManager.DBManager().getLastDateOfStockPricesHistory(id)[0]
                 if type(lastDate) == 'datetime':
                     lastDate = lastDate.date()
 
-                if lastDate == None:
+                # Retrieves stock price history
+                if lastDate == None: # No data
                     pricesHistory = self.retrieveStockPriceHistory(id, start, end)
-                elif lastDate >= start:
+                elif lastDate >= start: # There is some date
                     lastDate = lastDate + datetime.timedelta(days=1)
-                    if lastDate < end:
+                    if lastDate < end: 
                         pricesHistory = self.retrieveStockPriceHistory(id, lastDate, end)
-                elif lastDate == datetime.now():
+                elif lastDate == datetime.now(): # The date is up to date
                     pass
+
+                self.addPriceHistoryToDB(id, pricesHistory)
 
 
     def retrieveStockPriceHistory(self, id, start, end):
 
+        # Get symbol by id
         symbol = DBManager.DBManager().getSymbolOfStockByID(id)[0]
 
         try:
+            # Get stock price history
             results = web.DataReader(symbol, 'morningstar', start, end)
-            print(type(results))
-            print(results)
         except BaseException as exception:
              print("--- Exception: ", exception)
 
         print(type(results))
         print(results)
 
-        r0 = results.loc['AAPL']
-        print(type(r0))
-        print(r0)
-        sb.regplot(x = "Open", y = "Close", data = r0)
-        plt.show()
+        #r0 = results.loc[symbol]
+        #print(type(r0))
+        #print(r0)
 
-        DBManager.DBManager().priceHistoryDataframeToAdd(id, results)
+        #sb.regplot(x = "Open", y = "Close", data = r0)
+        #plt.show()
+        #plt.close()
+
+        return results
+
+
+    def addPriceHistoryToDB(self, id, priceHistory):
+
+        DBManager.DBManager().addPriceHistoryDataframe(id, priceHistory)
 
         
 

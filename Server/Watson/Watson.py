@@ -7,6 +7,7 @@ from DB import DBManager
 class Watson(object):
     """description of class"""
     
+
     natural_language_understanding = None
 
 
@@ -14,12 +15,13 @@ class Watson(object):
         super().__init__(**kwargs)
 
         if self.readWatsonKeysFromFile():
-
-            #self.whatToAnalyze()
+            self.whatToAnalyze()
             pass
+
 
     def readWatsonKeysFromFile(self):
         #print("--- In readWatsonKeysFromFile function ---")
+
         path = "C:\\Users\\Gal Tzemach\\Desktop\\watsonKeys.txt"
         # Open a file
         try:
@@ -34,6 +36,7 @@ class Watson(object):
         username = listOfKeys[0]
         password = listOfKeys[1]
         version = listOfKeys[2]
+
         # Close opened file
         watsonKeysFile.close()
 
@@ -43,38 +46,95 @@ class Watson(object):
 
 
     def whatToAnalyze(self):
-        textOfTweet = DBManager.DBManager().getTextOfTweetToAnalyze()
-        while textOfTweet:
-            text = textOfTweet[0]
-            textAnalyzed = self.analyze(text)
-            if textAnalyzed:
-                DBManager.DBManager().addAnalyzeToTweet(textAnalyzed, textOfTweet[1])
+        # Receives one text of tweet for analysis, if there is a tweet that has
+        # not yet been analyzed.
+        textAndIds = DBManager.DBManager().getTextAndIdsOfTweetToAnalyze()
 
-            textOfTweet = DBManager.DBManager().getTextOfTweetToAnalyze()
+        while textAndIds:
+            text = textAndIds[0]
+            id = textAndIds[1]
+            stock_id = textAndIds[2]
+
+            nameSymbol = DBManager.DBManager().getNameAndSymbolOfStock(stock_id)
+            name = nameSymbol[0]
+            symbol = nameSymbol[1]
+
+            # Send the text for analysis
+            textAnalyzed = self.analyze(text, name, symbol)
+
+            if textAnalyzed:
+                DBManager.DBManager().addAnalyzeToTweet(textAnalyzed, id)
+
+            # Receives one text of tweet for analysis, if there is a tweet that
+            # has not yet been analyzed.
+            textAndIds = DBManager.DBManager().getTextAndIdsOfTweetToAnalyze()
         else:
             print("--- MyPrint: There is no text to analyze.")
 
 
-
-    def analyze(self, text):
+    def analyze(self, text, name, symbol):
         #print("--- In analyze function ---")
 
-        if text == None:
-            print("The function analyze() received an empty parameter")
-        elif text != None:
-            response = Watson.natural_language_understanding.analyze(
-            text = text,
-            features=Features(
-            emotion=EmotionOptions(),
-            sentiment=SentimentOptions()),
-            #language="en",
-            return_analyzed_text=True)
+        if text == None or text == "":
+            raise Exception("The function analyze() received an None or empty text parameter.")
 
-            #print(json.dumps(response, indent=4))
+        try: # With name and symbol targets
+            response = Watson.natural_language_understanding.analyze(text = text,
+                            features = Features(emotion=EmotionOptions(), 
+                            sentiment=SentimentOptions()),
+                            #language="en",
+                            return_analyzed_text=False)
+        except BaseException as e:
+            print(e)
+            response = str(e)
+        else:
+            print(json.dumps(response, indent=4))
 
-            return response
+        return response
 
 
 
+    def analyzeWithTargets(self, text, name, symbol):
+        #print("--- In analyze function ---")
 
+        if text == None or text == "":
+            raise Exception("The function analyze() received an None or empty text parameter.")
+
+        try: # With name and symbol targets
+            response = Watson.natural_language_understanding.analyze(text = text,
+                            features = Features(emotion=EmotionOptions(targets=[name, "$" + symbol]), 
+                            sentiment=SentimentOptions(targets=[name, "$" + symbol])),
+                            #language="en",
+                            return_analyzed_text=True)
+        except BaseException as e:
+            print(e)
+            try: # Just with name targets
+                response = Watson.natural_language_understanding.analyze(text = text,
+                            features = Features(emotion=EmotionOptions(targets=[name]), 
+                            sentiment=SentimentOptions(targets=[name])),
+                            #language="en",
+                            return_analyzed_text=True)
+            except BaseException as e:
+                print(e)
+                try: # Just with symbol targets
+                    response = Watson.natural_language_understanding.analyze(text = text,
+                            features = Features(emotion=EmotionOptions(targets=[symbol]), 
+                            sentiment=SentimentOptions(targets=[symbol])),
+                            #language="en",
+                            return_analyzed_text=True)
+                except BaseException as e:
+                    print(e)    
+                    try: # Without targets
+                        response = Watson.natural_language_understanding.analyze(text = text,
+                            features = Features(emotion=EmotionOptions(), 
+                            sentiment=SentimentOptions()),
+                            #language="en",
+                            return_analyzed_text=True)
+                    except BaseException as e:
+                        print(e)   
+                        return False
+
+        print(json.dumps(response, indent=4))
+
+        return response
 
