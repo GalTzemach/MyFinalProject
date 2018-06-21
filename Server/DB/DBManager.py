@@ -518,3 +518,54 @@ class DBManager(metaclass=Singleton.Singleton):
         else:
             #print("--- MySuccess: getSentimentByDateAndId is successfully.")
             return results
+
+    def signIn(self, email, password):
+        password = self.stringToMD5(password)
+
+        # prepare a cursor object using cursor() method
+        cursor = DBManager.db.cursor()
+
+        # Prepare SQL query 
+        sql = """SELECT count(id) 
+                 FROM users
+                 WHERE email = \"%s\" and password = \"%s\" """ % (email, password)
+        try:
+            # Execute the SQL command
+            cursor.execute(sql)
+
+            # Fetch
+            results = cursor.fetchall()
+        except BaseException as exception:
+            print("--- MyError: signIn is failed")
+            print("--- Exception: ", exception)
+            return False
+        else:
+            if results[0][0] > 0:
+                if self.setIsConnect(email, True):
+                    return True
+            return False
+
+
+    def setIsConnect(self, email, isConnect):
+        # prepare a cursor object using cursor() method
+        cursor = DBManager.db.cursor()
+
+        # Prepare SQL query 
+        sql = """UPDATE users
+                    SET is_connect = '%d'
+                    WHERE email = \"%s\" """ % \
+                    (isConnect, email)
+        try:
+            # Execute the SQL command
+            cursor.execute(sql)
+            # Commit your changes in the database
+            DBManager.db.commit()
+        except BaseException as exception:
+            # Rollback in case there is any error
+            DBManager.db.rollback()
+            print("--- MyError: setIsConnect failed")
+            print("--- Exception: ", exception)
+            return False
+        else:
+            #print("--- MySuccess: setIsConnect is successfully.")
+            return True

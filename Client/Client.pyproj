@@ -23,11 +23,22 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Client.py" />
-    <Compile Include="Network\__init__.py">
+    <Compile Include="ClientServerNetwork\clientNetwork.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="ClientServerNetwork\vocabulary.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ClientServerNetwork\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Singleton.py" />
     <Compile Include="UI\clientGUI.py" />
     <Compile Include="UI\ClientGUILogic.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="UI\signUpInGUI.py" />
+    <Compile Include="UI\signUpInGUILogic.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="UI\__init__.py">
@@ -35,7 +46,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Network\" />
+    <Folder Include="ClientServerNetwork\" />
     <Folder Include="UI\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
