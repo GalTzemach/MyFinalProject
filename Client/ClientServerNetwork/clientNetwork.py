@@ -2,6 +2,7 @@ import socket
 from ClientServerNetwork import vocabulary
 import Singleton
 import pickle
+from math import ceil
 
 class clientNetwork(metaclass=Singleton.Singleton):
     """description of class"""
@@ -38,6 +39,29 @@ class clientNetwork(metaclass=Singleton.Singleton):
         elif response == vocabulary.USER_EXIST:
             print("Email already exists, try with another email address.")
             return "Email already exists, try with another email address."
+
+
+        
+    def getAllStocks(self):
+        # Sending the type of requst
+        self.s.send(pickle.dumps(vocabulary.GET_ALL_STOCKS))
+
+        # Get response
+        sizeOrError = pickle.loads(self.s.recv(vocabulary.BUFSIZE))
+
+        if sizeOrError == vocabulary.ERROR:
+            print("getAllStocks is failed.")
+            return False
+
+        packets = []
+        for i in range(ceil(sizeOrError / vocabulary.BUFSIZE)):
+            packet = self.s.recv(vocabulary.BUFSIZE)
+            packets.append(packet)   
+
+        data =  pickle.loads(b"".join(packets))
+
+        return data
+
 
 
     def signIn(self, arg):

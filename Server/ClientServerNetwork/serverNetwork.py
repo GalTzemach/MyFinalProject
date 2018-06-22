@@ -6,6 +6,7 @@ import datetime
 from ClientServerNetwork import vocabulary
 from DB import DBManager
 import pickle
+import sys
 
 
 
@@ -62,22 +63,23 @@ class handleClient(threading.Thread):
             print("The server received a request of type: %s" % (recvType))
 
             if recvType == vocabulary.EXIT:
-                self.clientsocket.close()
-                return
-
-            # Receiving the arg of request
-            recvArg = pickle.loads(self.clientsocket.recv(vocabulary.BUFSIZE))
-
-            if recvType == vocabulary.SIGNUP:
-                self.signUp(recvArg)
+                #self.clientsocket.close()
+                break
+            elif recvType == vocabulary.SIGNUP:
+                self.signUp()
             elif recvType == vocabulary.SIGNIN:
-                self.signIn(recvArg)
+                self.signIn()
             elif recvType == vocabulary.SET_IS_CONNECT:
-                self.setIsConnect(recvArg)
+                self.setIsConnect()
+            elif recvType == vocabulary.GET_ALL_STOCKS:
+                self.getAllStocks()
 
 
 
-    def signUp(self, recvArg):
+    def signUp(self):
+        # Receiving the arg of request
+        recvArg = pickle.loads(self.clientsocket.recv(vocabulary.BUFSIZE))
+
         respons = DBManager.DBManager().addNewUser(recvArg[0], recvArg[1], recvArg[2], recvArg[3], recvArg[4])
         if respons:
             self.clientsocket.send(pickle.dumps(vocabulary.OK))
@@ -85,7 +87,10 @@ class handleClient(threading.Thread):
             self.clientsocket.send(pickle.dumps(vocabulary.USER_EXIST))
 
 
-    def signIn(self, recvArg):
+    def signIn(self):
+        # Receiving the arg of request
+        recvArg = pickle.loads(self.clientsocket.recv(vocabulary.BUFSIZE))
+
         respons = DBManager.DBManager().signIn(recvArg[0], recvArg[1])
         if respons:
             self.clientsocket.send(pickle.dumps(vocabulary.OK))
@@ -93,9 +98,28 @@ class handleClient(threading.Thread):
             self.clientsocket.send(pickle.dumps(vocabulary.SIGNIN_FAIL))
 
 
-    def setIsConnect(self, recvArg):
+    def setIsConnect(self):
+        # Receiving the arg of request
+        recvArg = pickle.loads(self.clientsocket.recv(vocabulary.BUFSIZE))
+
         respons = DBManager.DBManager().setIsConnect(recvArg[0], recvArg[1])
         if respons:
             self.clientsocket.send(pickle.dumps(vocabulary.OK))
         else:
             self.clientsocket.send(pickle.dumps(vocabulary.SET_IS_CONNECT_FAIL))
+
+
+    def getAllStocks(self):
+        respons = DBManager.DBManager().getAllStocks()
+
+        if respons:
+            responsPickled = pickle.dumps(respons)
+
+            size = sys.getsizeof(responsPickled)
+
+            # Sent size and respons
+            self.clientsocket.send(pickle.dumps(size))
+            self.clientsocket.send(responsPickled)
+        else:
+            # Sent error
+            self.clientsocket.send(pickle.dumps(vocabulary.ERROR))

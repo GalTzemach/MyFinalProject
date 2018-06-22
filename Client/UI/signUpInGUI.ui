@@ -32,7 +32,7 @@
          <x>0</x>
          <y>0</y>
          <width>581</width>
-         <height>312</height>
+         <height>308</height>
         </rect>
        </property>
        <attribute name="label">
@@ -281,6 +281,11 @@
               </disabled>
              </palette>
             </property>
+            <property name="font">
+             <font>
+              <pointsize>10</pointsize>
+             </font>
+            </property>
             <property name="text">
              <string/>
             </property>
@@ -300,11 +305,24 @@
            </spacer>
           </item>
           <item>
-           <widget class="QPushButton" name="signUp_pushButton">
-            <property name="text">
-             <string>Sign Up</string>
-            </property>
-           </widget>
+           <layout class="QHBoxLayout" name="horizontalLayout_3">
+            <item>
+             <widget class="QPushButton" name="signUp_pushButton">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="layoutDirection">
+               <enum>Qt::LeftToRight</enum>
+              </property>
+              <property name="text">
+               <string>Sign Up</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
          </layout>
         </item>
@@ -316,7 +334,7 @@
          <x>0</x>
          <y>0</y>
          <width>581</width>
-         <height>312</height>
+         <height>308</height>
         </rect>
        </property>
        <attribute name="label">
@@ -844,6 +862,11 @@
               </disabled>
              </palette>
             </property>
+            <property name="font">
+             <font>
+              <pointsize>10</pointsize>
+             </font>
+            </property>
             <property name="text">
              <string/>
             </property>
@@ -863,11 +886,21 @@
            </spacer>
           </item>
           <item>
-           <widget class="QPushButton" name="signIn_pushButton">
-            <property name="text">
-             <string>Sign In</string>
-            </property>
-           </widget>
+           <layout class="QHBoxLayout" name="horizontalLayout_4">
+            <item>
+             <widget class="QPushButton" name="signIn_pushButton">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>Sign In</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
          </layout>
         </item>
@@ -913,6 +946,13 @@
          </colorrole>
         </disabled>
        </palette>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>10</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
       </property>
       <property name="text">
        <string/>

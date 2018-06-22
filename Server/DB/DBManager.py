@@ -121,6 +121,27 @@ class DBManager(metaclass=Singleton.Singleton):
             return results
 
 
+    def getAllStocks(self):
+        # prepare a cursor object using cursor() method
+        cursor = DBManager.db.cursor()
+        # Prepare SQL query 
+        sql = """SELECT name, symbol, country, industry, subsector 
+                 FROM stocks"""
+        try:
+            # Execute the SQL command
+            cursor.execute(sql)
+
+            # Fetch
+            results = cursor.fetchall()
+        except BaseException as exception:
+            print("--- MyError: getAllStocks is failed")
+            print("--- Exception: ", exception)
+            return False
+        else:
+            #print("--- MySuccess: getAllStocks is successfully.")
+            return results
+
+
     def getCountTweetsOfStockInDay(self, id, date):
         # prepare a cursor object using cursor() method
         cursor = DBManager.db.cursor()

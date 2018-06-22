@@ -9,7 +9,6 @@ from ClientServerNetwork import serverNetwork
 class Server():
 
     def __init__(self):
-        DBManager.DBManager().signIn("g@g.g", "123")
         serverNetwork.serverNetwork()
 
         #twitter = Twitter.Twitter()

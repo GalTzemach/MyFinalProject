@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>933</width>
-    <height>766</height>
+    <width>766</width>
+    <height>737</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,434 +16,26 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
+     <widget class="QLabel" name="helloUser_label">
+      <property name="font">
+       <font>
+        <pointsize>15</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+        <underline>false</underline>
+        <strikeout>false</strikeout>
+       </font>
+      </property>
+      <property name="text">
+       <string>Hello User</string>
+      </property>
+     </widget>
+    </item>
+    <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
        <number>1</number>
       </property>
-      <widget class="QWidget" name="sugn_up_in_tab">
-       <attribute name="title">
-        <string>Sign Up/In</string>
-       </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout_2">
-        <item>
-         <widget class="QToolBox" name="toolBox">
-          <property name="currentIndex">
-           <number>1</number>
-          </property>
-          <widget class="QWidget" name="sign_up_page">
-           <property name="geometry">
-            <rect>
-             <x>0</x>
-             <y>0</y>
-             <width>238</width>
-             <height>238</height>
-            </rect>
-           </property>
-           <attribute name="label">
-            <string>Sign Up</string>
-           </attribute>
-           <layout class="QVBoxLayout" name="verticalLayout_5">
-            <item>
-             <layout class="QVBoxLayout" name="verticalLayout_10">
-              <item>
-               <layout class="QHBoxLayout" name="horizontalLayout">
-                <property name="sizeConstraint">
-                 <enum>QLayout::SetDefaultConstraint</enum>
-                </property>
-                <item>
-                 <layout class="QVBoxLayout" name="verticalLayout_3">
-                  <property name="sizeConstraint">
-                   <enum>QLayout::SetFixedSize</enum>
-                  </property>
-                  <item>
-                   <widget class="QLabel" name="firstName_label">
-                    <property name="font">
-                     <font>
-                      <pointsize>10</pointsize>
-                      <weight>75</weight>
-                      <bold>true</bold>
-                      <underline>false</underline>
-                      <strikeout>false</strikeout>
-                     </font>
-                    </property>
-                    <property name="text">
-                     <string>First name:</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QLabel" name="lastName_label">
-                    <property name="font">
-                     <font>
-                      <pointsize>10</pointsize>
-                      <weight>75</weight>
-                      <bold>true</bold>
-                      <underline>false</underline>
-                      <strikeout>false</strikeout>
-                     </font>
-                    </property>
-                    <property name="text">
-                     <string>Last name:</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QLabel" name="email_label">
-                    <property name="font">
-                     <font>
-                      <pointsize>10</pointsize>
-                      <weight>75</weight>
-                      <bold>true</bold>
-                      <underline>false</underline>
-                      <strikeout>false</strikeout>
-                     </font>
-                    </property>
-                    <property name="text">
-                     <string>Email:</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QLabel" name="phoneNumber_label">
-                    <property name="font">
-                     <font>
-                      <pointsize>10</pointsize>
-                      <weight>75</weight>
-                      <bold>true</bold>
-                      <underline>false</underline>
-                      <strikeout>false</strikeout>
-                     </font>
-                    </property>
-                    <property name="text">
-                     <string>Phone number:</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QLabel" name="password_label">
-                    <property name="font">
-                     <font>
-                      <pointsize>10</pointsize>
-                      <weight>75</weight>
-                      <bold>true</bold>
-                      <underline>false</underline>
-                      <strikeout>false</strikeout>
-                     </font>
-                    </property>
-                    <property name="text">
-                     <string>Password:</string>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
-                </item>
-                <item>
-                 <layout class="QVBoxLayout" name="verticalLayout_4">
-                  <property name="sizeConstraint">
-                   <enum>QLayout::SetDefaultConstraint</enum>
-                  </property>
-                  <item>
-                   <widget class="QLineEdit" name="firstName_lineEdit">
-                    <property name="maximumSize">
-                     <size>
-                      <width>250</width>
-                      <height>16777215</height>
-                     </size>
-                    </property>
-                    <property name="clearButtonEnabled">
-                     <bool>false</bool>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QLineEdit" name="lastName_lineEdit">
-                    <property name="maximumSize">
-                     <size>
-                      <width>250</width>
-                      <height>16777215</height>
-                     </size>
-                    </property>
-                    <property name="clearButtonEnabled">
-                     <bool>false</bool>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QLineEdit" name="email_lineEdit">
-                    <property name="maximumSize">
-                     <size>
-                      <width>250</width>
-                      <height>16777215</height>
-                     </size>
-                    </property>
-                    <property name="clearButtonEnabled">
-                     <bool>false</bool>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QLineEdit" name="phoneNumber_lineEdit">
-                    <property name="maximumSize">
-                     <size>
-                      <width>250</width>
-                      <height>16777215</height>
-                     </size>
-                    </property>
-                    <property name="clearButtonEnabled">
-                     <bool>false</bool>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QLineEdit" name="password_lineEdit">
-                    <property name="enabled">
-                     <bool>true</bool>
-                    </property>
-                    <property name="maximumSize">
-                     <size>
-                      <width>250</width>
-                      <height>16777215</height>
-                     </size>
-                    </property>
-                    <property name="inputMethodHints">
-                     <set>Qt::ImhNone</set>
-                    </property>
-                    <property name="clearButtonEnabled">
-                     <bool>false</bool>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
-                </item>
-                <item>
-                 <spacer name="horizontalSpacer">
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>40</width>
-                    <height>20</height>
-                   </size>
-                  </property>
-                 </spacer>
-                </item>
-               </layout>
-              </item>
-              <item>
-               <spacer name="verticalSpacer_3">
-                <property name="orientation">
-                 <enum>Qt::Vertical</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>20</width>
-                  <height>40</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-              <item>
-               <widget class="QLabel" name="error_label">
-                <property name="text">
-                 <string/>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <spacer name="verticalSpacer">
-                <property name="orientation">
-                 <enum>Qt::Vertical</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>20</width>
-                  <height>40</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-              <item>
-               <widget class="QDialogButtonBox" name="buttonBox">
-                <property name="font">
-                 <font>
-                  <pointsize>8</pointsize>
-                  <weight>50</weight>
-                  <bold>false</bold>
-                  <kerning>true</kerning>
-                 </font>
-                </property>
-                <property name="autoFillBackground">
-                 <bool>false</bool>
-                </property>
-                <property name="standardButtons">
-                 <set>QDialogButtonBox::Ok|QDialogButtonBox::Reset</set>
-                </property>
-                <property name="centerButtons">
-                 <bool>false</bool>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-           </layout>
-          </widget>
-          <widget class="QWidget" name="sign_in_page">
-           <property name="geometry">
-            <rect>
-             <x>0</x>
-             <y>0</y>
-             <width>217</width>
-             <height>151</height>
-            </rect>
-           </property>
-           <attribute name="label">
-            <string>Sign In</string>
-           </attribute>
-           <layout class="QVBoxLayout" name="verticalLayout_6">
-            <item>
-             <layout class="QVBoxLayout" name="verticalLayout_11">
-              <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_2">
-                <property name="sizeConstraint">
-                 <enum>QLayout::SetDefaultConstraint</enum>
-                </property>
-                <item>
-                 <layout class="QVBoxLayout" name="verticalLayout_12">
-                  <property name="sizeConstraint">
-                   <enum>QLayout::SetFixedSize</enum>
-                  </property>
-                  <item>
-                   <widget class="QLabel" name="email_label_2">
-                    <property name="font">
-                     <font>
-                      <pointsize>10</pointsize>
-                      <weight>75</weight>
-                      <bold>true</bold>
-                      <underline>false</underline>
-                      <strikeout>false</strikeout>
-                     </font>
-                    </property>
-                    <property name="text">
-                     <string>Email:</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QLabel" name="password_label_2">
-                    <property name="font">
-                     <font>
-                      <pointsize>10</pointsize>
-                      <weight>75</weight>
-                      <bold>true</bold>
-                      <underline>false</underline>
-                      <strikeout>false</strikeout>
-                     </font>
-                    </property>
-                    <property name="text">
-                     <string>Password:</string>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
-                </item>
-                <item>
-                 <layout class="QVBoxLayout" name="verticalLayout_13">
-                  <property name="sizeConstraint">
-                   <enum>QLayout::SetDefaultConstraint</enum>
-                  </property>
-                  <item>
-                   <widget class="QLineEdit" name="email_lineEdit_2">
-                    <property name="maximumSize">
-                     <size>
-                      <width>250</width>
-                      <height>16777215</height>
-                     </size>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QLineEdit" name="password_lineEdit_2">
-                    <property name="maximumSize">
-                     <size>
-                      <width>250</width>
-                      <height>16777215</height>
-                     </size>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
-                </item>
-                <item>
-                 <spacer name="horizontalSpacer_2">
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>40</width>
-                    <height>20</height>
-                   </size>
-                  </property>
-                 </spacer>
-                </item>
-               </layout>
-              </item>
-              <item>
-               <spacer name="verticalSpacer_4">
-                <property name="orientation">
-                 <enum>Qt::Vertical</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>20</width>
-                  <height>40</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-              <item>
-               <widget class="QLabel" name="error_label_2">
-                <property name="text">
-                 <string/>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <spacer name="verticalSpacer_2">
-                <property name="orientation">
-                 <enum>Qt::Vertical</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>20</width>
-                  <height>40</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-              <item>
-               <widget class="QDialogButtonBox" name="buttonBox_2">
-                <property name="font">
-                 <font>
-                  <pointsize>8</pointsize>
-                  <weight>50</weight>
-                  <bold>false</bold>
-                 </font>
-                </property>
-                <property name="standardButtons">
-                 <set>QDialogButtonBox::Ok|QDialogButtonBox::Reset</set>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-           </layout>
-          </widget>
-         </widget>
-        </item>
-       </layout>
-      </widget>
       <widget class="QWidget" name="my_account_tab">
        <attribute name="title">
         <string>My Account</string>
@@ -451,22 +43,6 @@
        <layout class="QVBoxLayout" name="verticalLayout_8">
         <item>
          <layout class="QVBoxLayout" name="verticalLayout_7">
-          <item>
-           <widget class="QLabel" name="helloUser_label">
-            <property name="font">
-             <font>
-              <pointsize>15</pointsize>
-              <weight>75</weight>
-              <bold>true</bold>
-              <underline>false</underline>
-              <strikeout>false</strikeout>
-             </font>
-            </property>
-            <property name="text">
-             <string>Hello User</string>
-            </property>
-           </widget>
-          </item>
           <item>
            <widget class="QGroupBox" name="myStocks_groupBox">
             <property name="title">
@@ -577,6 +153,49 @@
               <layout class="QHBoxLayout" name="horizontalLayout_4">
                <item>
                 <widget class="QPushButton" name="addStocks_pushButton">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="palette">
+                  <palette>
+                   <active>
+                    <colorrole role="ButtonText">
+                     <brush brushstyle="SolidPattern">
+                      <color alpha="255">
+                       <red>0</red>
+                       <green>170</green>
+                       <blue>0</blue>
+                      </color>
+                     </brush>
+                    </colorrole>
+                   </active>
+                   <inactive>
+                    <colorrole role="ButtonText">
+                     <brush brushstyle="SolidPattern">
+                      <color alpha="255">
+                       <red>0</red>
+                       <green>170</green>
+                       <blue>0</blue>
+                      </color>
+                     </brush>
+                    </colorrole>
+                   </inactive>
+                   <disabled>
+                    <colorrole role="ButtonText">
+                     <brush brushstyle="SolidPattern">
+                      <color alpha="255">
+                       <red>120</red>
+                       <green>120</green>
+                       <blue>120</blue>
+                      </color>
+                     </brush>
+                    </colorrole>
+                   </disabled>
+                  </palette>
+                 </property>
                  <property name="acceptDrops">
                   <bool>true</bool>
                  </property>
@@ -587,6 +206,52 @@
                </item>
                <item>
                 <widget class="QPushButton" name="deleteStocks_pushButton">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="palette">
+                  <palette>
+                   <active>
+                    <colorrole role="ButtonText">
+                     <brush brushstyle="SolidPattern">
+                      <color alpha="255">
+                       <red>255</red>
+                       <green>0</green>
+                       <blue>0</blue>
+                      </color>
+                     </brush>
+                    </colorrole>
+                   </active>
+                   <inactive>
+                    <colorrole role="ButtonText">
+                     <brush brushstyle="SolidPattern">
+                      <color alpha="255">
+                       <red>255</red>
+                       <green>0</green>
+                       <blue>0</blue>
+                      </color>
+                     </brush>
+                    </colorrole>
+                   </inactive>
+                   <disabled>
+                    <colorrole role="ButtonText">
+                     <brush brushstyle="SolidPattern">
+                      <color alpha="255">
+                       <red>120</red>
+                       <green>120</green>
+                       <blue>120</blue>
+                      </color>
+                     </brush>
+                    </colorrole>
+                   </disabled>
+                  </palette>
+                 </property>
                  <property name="text">
                   <string>Delete Stock</string>
                  </property>
@@ -752,13 +417,31 @@
              <property name="autoFillBackground">
               <bool>false</bool>
              </property>
+             <property name="frameShape">
+              <enum>QFrame::StyledPanel</enum>
+             </property>
+             <property name="tabKeyNavigation">
+              <bool>true</bool>
+             </property>
+             <property name="showDropIndicator" stdset="0">
+              <bool>true</bool>
+             </property>
              <property name="alternatingRowColors">
               <bool>true</bool>
+             </property>
+             <property name="selectionMode">
+              <enum>QAbstractItemView::SingleSelection</enum>
              </property>
              <property name="selectionBehavior">
               <enum>QAbstractItemView::SelectRows</enum>
              </property>
              <property name="sortingEnabled">
+              <bool>true</bool>
+             </property>
+             <property name="wordWrap">
+              <bool>true</bool>
+             </property>
+             <property name="cornerButtonEnabled">
               <bool>true</bool>
              </property>
              <attribute name="horizontalHeaderStretchLastSection">
@@ -777,69 +460,104 @@
                <string>2</string>
               </property>
              </row>
-             <row>
-              <property name="text">
-               <string>3</string>
-              </property>
-             </row>
-             <column>
-              <property name="text">
-               <string>Symbol</string>
-              </property>
-             </column>
              <column>
               <property name="text">
                <string>Name</string>
               </property>
+              <property name="font">
+               <font>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
              </column>
              <column>
               <property name="text">
-               <string>Description</string>
+               <string>Symbol</string>
+              </property>
+              <property name="font">
+               <font>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string>Country</string>
+              </property>
+              <property name="font">
+               <font>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string>Industry</string>
+              </property>
+              <property name="font">
+               <font>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string>Sub Sector</string>
+              </property>
+              <property name="font">
+               <font>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
               </property>
              </column>
              <item row="0" column="0">
               <property name="text">
-               <string>APPL</string>
+               <string>Apple</string>
               </property>
              </item>
              <item row="0" column="1">
               <property name="text">
-               <string>Apple Inc.</string>
+               <string>AAPL</string>
               </property>
              </item>
              <item row="0" column="2">
               <property name="text">
-               <string>Computer Manufacturing</string>
+               <string>us</string>
+              </property>
+             </item>
+             <item row="0" column="3">
+              <property name="text">
+               <string>a</string>
+              </property>
+             </item>
+             <item row="0" column="4">
+              <property name="text">
+               <string>b</string>
               </property>
              </item>
              <item row="1" column="0">
               <property name="text">
-               <string>GOOG</string>
+               <string>2</string>
               </property>
              </item>
              <item row="1" column="1">
               <property name="text">
-               <string>Alphabet Inc.</string>
+               <string>2</string>
               </property>
              </item>
              <item row="1" column="2">
               <property name="text">
-               <string>Computer Software: Programming, Data Processing</string>
+               <string>2</string>
               </property>
              </item>
-             <item row="2" column="0">
+             <item row="1" column="3">
               <property name="text">
-               <string>FB</string>
-              </property>
-             </item>
-             <item row="2" column="1">
-              <property name="text">
-               <string>Facebook, Inc.</string>
-              </property>
-             </item>
-             <item row="2" column="2">
-              <property name="text">
-               <string>Computer Software: Programming, Data Processing</string>
+               <string>2</string>
               </property>
              </item>
             </widget>
@@ -850,31 +568,9 @@
         <item>
          <widget class="QGroupBox" name="groupBox">
           <property name="title">
-           <string>Information about a particular stock</string>
+           <string>Stock Information</string>
           </property>
-          <layout class="QVBoxLayout" name="verticalLayout_16">
-           <item>
-            <widget class="QLabel" name="label_2">
-             <property name="text">
-              <string>Messages/Recommendations</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLabel" name="label_4">
-             <property name="text">
-              <string>Regression</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLabel" name="label_3">
-             <property name="text">
-              <string>Other graphs and information</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
+          <layout class="QVBoxLayout" name="verticalLayout_16"/>
          </widget>
         </item>
        </layout>
@@ -888,7 +584,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>933</width>
+     <width>766</width>
      <height>26</height>
     </rect>
    </property>

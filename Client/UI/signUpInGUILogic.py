@@ -47,12 +47,9 @@ class signUpInGUILogic(QMainWindow, signUpInGUI.Ui_MainWindow):
             if isinstance(isSignin, bool) and isSignin == True:
 
                 self.isSignInn = True
+                self.close()
 
                 #clientNetwork.clientNetwork().exit()
-
-                #self.close()
-
-                #ClientGUILogic.start()
 
             else:
                 self.error_label_2.setText(str(isSignin))
@@ -180,8 +177,8 @@ class signUpInGUILogic(QMainWindow, signUpInGUI.Ui_MainWindow):
 
 
 
-    #def closeEvent(self, QCloseEvent):
-    #    print("Close %s" % (str(QCloseEvent)))
+    def closeEvent(self, QCloseEvent):
+        pass
 
 
 def start():
