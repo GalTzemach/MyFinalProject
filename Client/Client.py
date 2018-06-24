@@ -5,13 +5,17 @@ from math import ceil
 
 class Client():
 
+    ID = None
+
     def __init__(self):
 
         clientNetwork.clientNetwork()
-        #isSignIn = signUpInGUILogic.start()
+        #isSignInAndID = signUpInGUILogic.start()
+        #isSignIn = isSignInAndID[0]
         #if isSignIn:
-        #    ClientGUILogic.start()
-        ClientGUILogic.start()
+        #    self.ID = isSignInAndID[1][0]
+        #    ClientGUILogic.start(self.ID)
+        ClientGUILogic.start(1)
 
 
 if __name__ == '__main__':

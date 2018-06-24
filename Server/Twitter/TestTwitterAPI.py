@@ -14,7 +14,6 @@ class TestTwitterAPI:
 
 
     def readTwitterKeysFromFile(self):
-        #print("--- In readTwitterKeysFromFile function ---")
         #path = "C:\\Users\\Gal Tzemach\\Desktop\\twitterKeys.txt"
         path = "C:\\Users\\Gal Tzemach\\Desktop\\twitterSandboxKeys.txt"
 

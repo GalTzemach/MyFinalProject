@@ -5,10 +5,8 @@ from DB import DBManager
 
 
 class Watson(object):
-    """description of class"""
     
-
-    natural_language_understanding = None
+    natural_language_understanding = None # Creating in readWatsonKeysFromFile
 
 
     def __init__(self, **kwargs):
@@ -16,11 +14,9 @@ class Watson(object):
 
         if self.readWatsonKeysFromFile():
             self.whatToAnalyze()
-            pass
 
 
     def readWatsonKeysFromFile(self):
-        #print("--- In readWatsonKeysFromFile function ---")
 
         path = "C:\\Users\\Gal Tzemach\\Desktop\\watsonKeys.txt"
         # Open a file
@@ -46,16 +42,16 @@ class Watson(object):
 
 
     def whatToAnalyze(self):
-        # Receives one text of tweet for analysis, if there is a tweet that has
-        # not yet been analyzed.
+        # Receives (one) text and id of tweet for analysis,
+        # if there is a tweet that has not yet been analyzed.
         textAndIds = DBManager.DBManager().getTextAndIdsOfTweetToAnalyze()
 
         while textAndIds:
             text = textAndIds[0]
             id = textAndIds[1]
-            stock_id = textAndIds[2]
+            stockID = textAndIds[2]
 
-            nameSymbol = DBManager.DBManager().getNameAndSymbolOfStock(stock_id)
+            nameSymbol = DBManager.DBManager().getNameAndSymbolByID(stockID)
             name = nameSymbol[0]
             symbol = nameSymbol[1]
 
@@ -65,25 +61,23 @@ class Watson(object):
             if textAnalyzed:
                 DBManager.DBManager().addAnalyzeToTweet(textAnalyzed, id)
 
-            # Receives one text of tweet for analysis, if there is a tweet that
-            # has not yet been analyzed.
+            # Receives...  again
             textAndIds = DBManager.DBManager().getTextAndIdsOfTweetToAnalyze()
         else:
-            print("--- MyPrint: There is no text to analyze.")
+            print("There is no text to analyze.")
 
 
     def analyze(self, text, name, symbol):
-        #print("--- In analyze function ---")
 
         if text == None or text == "":
             raise Exception("The function analyze() received an None or empty text parameter.")
 
-        try: # With name and symbol targets
-            response = Watson.natural_language_understanding.analyze(text = text,
-                            features = Features(emotion=EmotionOptions(), 
-                            sentiment=SentimentOptions()),
+        try:
+            response = Watson.natural_language_understanding.analyze(
+                            text = text,
+                            features = Features(emotion=EmotionOptions(), sentiment=SentimentOptions()),
                             #language="en",
-                            return_analyzed_text=False)
+                            return_analyzed_text = False)
         except BaseException as e:
             print(e)
             response = str(e)
@@ -93,9 +87,7 @@ class Watson(object):
         return response
 
 
-
     def analyzeWithTargets(self, text, name, symbol):
-        #print("--- In analyze function ---")
 
         if text == None or text == "":
             raise Exception("The function analyze() received an None or empty text parameter.")

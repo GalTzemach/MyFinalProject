@@ -73,7 +73,26 @@ class handleClient(threading.Thread):
                 self.setIsConnect()
             elif recvType == vocabulary.GET_ALL_STOCKS:
                 self.getAllStocks()
-
+            elif recvType == vocabulary.GET_ID_BY_EMAIL:
+                self.getIDByEmail()
+            elif recvType == vocabulary.GET_FULL_NAME_BY_ID:
+                self.getFullNameByID()
+            elif recvType == vocabulary.GET_EXPLANATION_BY_SYMBOL:
+                self.getExplanationBySymbol()
+            elif recvType == vocabulary.GET_STOCKID_BY_SYMBOL:
+                self.getStockIDBySymbol()
+            elif recvType == vocabulary.GET_ALL_TWEETS_BY_STOCKID:
+                self.getAllTweetsByStockID()
+            elif recvType == vocabulary.GET_MY_STOCKS_IDS:
+                self.getMyStocksIDs()
+            elif recvType == vocabulary.GET_STOCK_BY_ID:
+                self.getStockByID()
+            elif recvType == vocabulary.GET_ALL_STOCKS_IDS:
+                self.getAllStocksIDs()
+            elif recvType == vocabulary.DELETE_STOCK_BY_IDS:
+                self.deleteStockByIDs()
+            elif recvType == vocabulary.ADD_STOCK_TO_USER:
+                self.addStockToUser()
 
 
     def signUp(self):
@@ -111,6 +130,163 @@ class handleClient(threading.Thread):
 
     def getAllStocks(self):
         respons = DBManager.DBManager().getAllStocks()
+
+        if respons:
+            responsPickled = pickle.dumps(respons)
+
+            size = sys.getsizeof(responsPickled)
+
+            # Sent size and respons
+            self.clientsocket.send(pickle.dumps(size))
+            self.clientsocket.send(responsPickled)
+        else:
+            # Sent error
+            self.clientsocket.send(pickle.dumps(vocabulary.ERROR))
+
+
+
+    def getIDByEmail(self):
+        # Receiving the arg of request
+        email = pickle.loads(self.clientsocket.recv(vocabulary.BUFSIZE))
+        respons = DBManager.DBManager().getIDByEmail(email)
+        if respons:
+            self.clientsocket.send(pickle.dumps(respons))
+        else:
+            self.clientsocket.send(pickle.dumps(vocabulary.ERROR))
+
+
+    def getFullNameByID(self):
+        # Receiving the arg of request
+        id = pickle.loads(self.clientsocket.recv(vocabulary.BUFSIZE))
+        respons = DBManager.DBManager().getFullNameByID(id)
+        if respons:
+            self.clientsocket.send(pickle.dumps(respons))
+        else:
+            self.clientsocket.send(pickle.dumps(vocabulary.ERROR))
+
+
+    def getExplanationBySymbol(self):
+        # Receiving the arg of request
+        symbol = pickle.loads(self.clientsocket.recv(vocabulary.BUFSIZE))
+        respons = DBManager.DBManager().getExplanationBySymbol(symbol)
+        if respons:
+            self.clientsocket.send(pickle.dumps(respons))
+        else:
+            self.clientsocket.send(pickle.dumps(vocabulary.ERROR))
+
+    def getStockIDBySymbol(self):
+        # Receiving the arg of request
+        symbol = pickle.loads(self.clientsocket.recv(vocabulary.BUFSIZE))
+        respons = DBManager.DBManager().getStockIDBySymbol(symbol)
+        if respons:
+            self.clientsocket.send(pickle.dumps(respons))
+        else:
+            self.clientsocket.send(pickle.dumps(vocabulary.ERROR))
+
+
+    def getAllTweetsByStockID(self):
+        # Receiving the arg of request
+        stockID = pickle.loads(self.clientsocket.recv(vocabulary.BUFSIZE))
+
+        respons = DBManager.DBManager().getAllTweetsByStockID(stockID)
+
+        if respons:
+            responsPickled = pickle.dumps(respons)
+
+            size = sys.getsizeof(responsPickled)
+            print(size)
+
+            # Sent size and respons
+            self.clientsocket.send(pickle.dumps(size))
+            self.clientsocket.send(responsPickled)
+        else:
+            # Sent error
+            self.clientsocket.send(pickle.dumps(vocabulary.ERROR))
+
+
+    def getMyStocksIDs(self):
+        # Receiving the arg of request
+        ID = pickle.loads(self.clientsocket.recv(vocabulary.BUFSIZE))
+
+        respons = DBManager.DBManager().getMyStocksIDs(ID)
+
+        if respons:
+            responsPickled = pickle.dumps(respons)
+
+            size = sys.getsizeof(responsPickled)
+
+            # Sent size and respons
+            self.clientsocket.send(pickle.dumps(size))
+            self.clientsocket.send(responsPickled)
+        else:
+            # Sent error
+            self.clientsocket.send(pickle.dumps(vocabulary.ERROR))
+
+
+    def getStockByID(self):
+        # Receiving the arg of request
+        stockID = pickle.loads(self.clientsocket.recv(vocabulary.BUFSIZE))
+
+        respons = DBManager.DBManager().getStockByID(stockID)
+
+        if respons:
+            responsPickled = pickle.dumps(respons)
+
+            size = sys.getsizeof(responsPickled)
+
+            # Sent size and respons
+            self.clientsocket.send(pickle.dumps(size))
+            self.clientsocket.send(responsPickled)
+        else:
+            # Sent error
+            self.clientsocket.send(pickle.dumps(vocabulary.ERROR))
+
+
+    def getAllStocksIDs(self):
+        respons = DBManager.DBManager().getAllStocksIDs()
+
+        if respons:
+            responsPickled = pickle.dumps(respons)
+
+            size = sys.getsizeof(responsPickled)
+
+            # Sent size and respons
+            self.clientsocket.send(pickle.dumps(size))
+            self.clientsocket.send(responsPickled)
+        else:
+            # Sent error
+            self.clientsocket.send(pickle.dumps(vocabulary.ERROR))
+
+
+    def deleteStockByIDs(self):
+        # Receiving the arg of request
+        arg = pickle.loads(self.clientsocket.recv(vocabulary.BUFSIZE))
+        userID = arg[0]
+        stockID = arg[1]
+
+        respons = DBManager.DBManager().deleteStockByIDs(userID, stockID)
+
+        if respons:
+            responsPickled = pickle.dumps(respons)
+
+            size = sys.getsizeof(responsPickled)
+
+            # Sent size and respons
+            self.clientsocket.send(pickle.dumps(size))
+            self.clientsocket.send(responsPickled)
+        else:
+            # Sent error
+            self.clientsocket.send(pickle.dumps(vocabulary.ERROR))
+
+
+
+    def addStockToUser(self):
+        # Receiving the arg of request
+        arg = pickle.loads(self.clientsocket.recv(vocabulary.BUFSIZE))
+        userID = arg[0]
+        stockID = arg[1]
+
+        respons = DBManager.DBManager().addStockToUser(userID, stockID)
 
         if respons:
             responsPickled = pickle.dumps(respons)

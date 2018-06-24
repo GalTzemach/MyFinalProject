@@ -8,265 +8,262 @@ import pause
 class Twitter:
 
     apiOfTwitter = None # Initialized in function readTwitterKeysFromFile()
-    api = None # Initialized in function readTwitterKeysFromFile()
+    twitterApi = None # Initialized in function readTwitterKeysFromFile()
 
-    threshold = 10000
+    thresholdTweets = 1000 
+    maxTweets = 1000 
     days = 11
     waite = 0 #5
-    maxTweet = 1000
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
         if self.readTwitterKeysFromFile():
 
-            ## Check rate limit
-            #self.checkRateLimitOld()
-
             ## Verify Credentials
-            #user = self.verifyCredentials()
+            #user = self.getverifyCredentials()
 
-            ## search()
-            #self.search("q=apple%20OR%20Apple%20OR%20APPLE%20%23%24AAPL%20since%3A2018-05-28%20until%3A2018-05-29&result_type=mixed&lang=en&count=600")
-
+            # Start to search tweets 
             self.whatToSearch()
 
 
     def readTwitterKeysFromFile(self):
-        #print("--- In readTwitterKeysFromFile function ---")
+
+        # Path for keys
+        # Standard keys
         #path = "C:\\Users\\Gal Tzemach\\Desktop\\twitterKeys.txt"
+        # Sandbox key
         path = "C:\\Users\\Gal Tzemach\\Desktop\\twitterSandboxKeys.txt"
 
         # Open a file
         try:
             twitterKeysFile = open(path,"r") # r Opens a file for reading only.
         except FileNotFoundError:
-            print("--- MyError: In readTwitterKeysFromFile function, File ", path, " not found.")
+            print("MyError: In readTwitterKeysFromFile function, File ", path, " not found.")
             return False
 
         # Read all file
         listOfKeys = twitterKeysFile.read().splitlines()
+
         consumer_key = listOfKeys[0]
         consumer_secret = listOfKeys[1]
         access_token_key = listOfKeys[2]
         access_token_secret = listOfKeys[3]
+
         # Close opened file
         twitterKeysFile.close()
 
-        #Create api object with the keys
+        #Create apiOfTwitter and twitterApi object with the keys
         Twitter.apiOfTwitter = twitter.Api(consumer_key, consumer_secret, access_token_key, access_token_secret, sleep_on_rate_limit=True)
-        Twitter.api = TwitterAPI(consumer_key, consumer_secret, access_token_key, access_token_secret)
+        Twitter.twitterApi = TwitterAPI(consumer_key, consumer_secret, access_token_key, access_token_secret)
         return True
 
 
-    def whatToSearchOld(self):
-        #print("--- In whatToSearch function ---")
-
-        now = datetime.datetime.now()
-        dateToSearch = now - datetime.timedelta(days=7) # Sub days from date
-
-        while dateToSearch < now:
-            besidesIDSet = set()
-
-            minTuple = self.getMinTweetsInDay(dateToSearch) # [0]= count, [1]=id
-            if minTuple == False:
-                print("--- MyError: whatToSearch is faild in getMinTweetsInDay().")
-                return False
-            minTweets = minTuple[0]
-            id = minTuple[1]
-
-            while minTweets < Twitter.threshold:
-                stockNameSymbol = DBManager.DBManager().getNameAndSymbolOfStock(id) # [0]=name, [1]=symbol
-                if stockNameSymbol == False:
-                    print("--- MyError: whatToSearch is faild in getNameAndSymbolOfStock().")
-                    return False
-
-                print("--- dateToSearch is: %s, for %s stock (%s, %d)." % (dateToSearch.date(), stockNameSymbol[0], stockNameSymbol[1], id))
-
-                # Get tweets
-                listOfTweets = self.searchTweets(id, dateToSearch)
-
-                if listOfTweets == False:
-                    print("--- MyError: whatToSearch is faild in ().")
-                    return False
-
-                numberOfTweetsNotInserted = 0
-                countTweets = 0
-                textSet = set()
-                idSet = set()
-
-                for tweet in listOfTweets:
-                    tweetJson = tweet._json
-
-                    countTweets += 1
-
-                    # Add tweet to sets
-                    idSet.add(tweetJson['id_str'])
-                    textSet.add(tweetJson['text'])
-
-                    # Add tweet to database
-                    if DBManager.DBManager().addTweet(id, tweet) != True:
-                        numberOfTweetsNotInserted += 1
-
-
-                uniqeTweetsId = len(idSet)
-                uniqeTweetsText = len(textSet)
-
-                print("--- %d from %d tweets are uniqe (id)" % (len(idSet), countTweets))
-                print("--- %d from %d tweets are uniqe (text)" % (len(textSet), countTweets))
-
-                print("--- %d tweets inserted to DB." % (countTweets - numberOfTweetsNotInserted))
-
-                if countTweets == 0 or numberOfTweetsNotInserted >= uniqeTweetsId:
-                    besidesIDSet.add(id)
-
-                minTuple = self.getMinTweetsInDay(dateToSearch, besidesIDSet) # [0]= count, [1]=id
-
-                if minTuple != False:
-                    minTweets = minTuple[0]
-                    id = minTuple[1]
-                else:
-                    print("--- MyError: whatToSearch is faild in getMinTweetsInDay().")
-                    return False
-
-            dateToSearch = dateToSearch + datetime.timedelta(days=1) # Add days to date
-
-
     def whatToSearch(self):
-        #print("--- In whatToSearch function ---")
 
-        # Get current time and prepare the time for initial search
+        # Get current time and prepare the dateToSearch
         now = datetime.datetime.now()
         dateToSearch = now - datetime.timedelta(days = Twitter.days) # Sub days from date
 
         while dateToSearch < now:
-            # A set of ID to ignore
+            # Set of ID to ignore them in this date
             besidesIDSet = set()
 
             # Get min tweet (count and id)
-            minTuple = self.getMinTweetsInDay(dateToSearch) # [0]= count, [1]=id
+            minTuple = self.getMinTweetCountAndIDByDay(dateToSearch) # [0]= count, [1]=id
             if minTuple == False:
-                print("--- MyError: whatToSearch is faild in getMinTweetsInDay().")
+                print("MyError: whatToSearch is faild in getMinTweetsInDay().")
                 return False
-            minTweets = minTuple[0]
-            id = minTuple[1]
+            minCount = minTuple[0]
+            minID = minTuple[1]
 
-            while minTweets < 100: #== 0: #< Twitter.threshold:
-                # Get name & symbol of tweet
-                stockNameSymbol = DBManager.DBManager().getNameAndSymbolOfStock(id) # [0]=name, [1]=symbol
+            while minCount < self.thresholdTweets:
+                # Get name and symbol of tweet by ID
+                stockNameSymbol = DBManager.DBManager().getNameAndSymbolByID(minID) # [0]=name, [1]=symbol
                 if stockNameSymbol == False:
-                    print("--- MyError: whatToSearch is faild in getNameAndSymbolOfStock().")
+                    print("MyError: whatToSearch is faild in getNameAndSymbolByID().")
                     return False
                 name = stockNameSymbol[0]
                 symbol = stockNameSymbol[1]
 
                 # Print search details 
-                print("\n--- Search for Date: %s, for \"%s\" stock (symbol:%s, id:%d):" % (dateToSearch.date(), name, symbol, id))
+                print("\n Search for Date: %s, for \"%s\" stock (symbol:%s, id:%d):" % (dateToSearch.date(), name, symbol, minID))
 
                 try:
-                    # Get/Search tweets
-                    results = self.getTweetsStandard7Days(id, dateToSearch)
+                    # Get/Search tweets from Twitter by API
+                    results = self.getTweetsStandard7Days(minID, dateToSearch)
                     #results = self.getTweetsSandbox30Days(id, dateToSearch)
 
                 except BaseException as exception:
-                    if 'status_code' in exception.__dict__:
-                        if exception.status_code == 429: # rate limit
-                            print("--- Exception: %s %s" % (exception.__class__, exception))
+                    if 'status_code' in exception.__dict__ and exception.status_code == 429: # Is a rate limit exception
+                        print("Exception: %s %s" % (exception.__class__, exception))
 
-                            # Get rate limit details
-                            rateLimitDict = self.checkRateLimit()
+                        # Get rate limit details
+                        rateLimitDict = self.getRateLimit()
 
-                            # Reset for /search/tweets
-                            reset = rateLimitDict['resources']['search']['/search/tweets']['reset']
+                        # Get reset time
+                        # Get reset time for /search/tweets endpoint
+                        reset = rateLimitDict['resources']['search']['/search/tweets']['reset']
+                        ## Get reset time for /tweets/search/:product/:label endpoint
+                        #reset = rateLimitDict['resources']['tweets']['/tweets/search/:product/:label']['reset']
 
-                            ## Reset for /tweets/search/:product/:label
-                            #reset = rateLimitDict['resources']['tweets']['/tweets/search/:product/:label']['reset']
+                        # Safety coefficient
+                        reset += 10 
 
-                            reset += 10
+                        # Create datetime object from reset
+                        resetDatetime = datetime.datetime.fromtimestamp(reset)
 
-                            # Create datetime from timestamp
-                            datetimeTemp = datetime.datetime.fromtimestamp(reset)
-
-                            # Sleep until the endpoint is reset
-                            print("\n\n--- Sleep for rate limit until %s (%s)\n\n" % (datetimeTemp, reset))
-                            pause.until(reset) #Stops the thread until the service restarts
+                        # Sleep until the endpoint is reset
+                        print("\n\n Sleep for rate limit until %s (%s)\n\n" % (resetDatetime, reset))
+                        pause.until(reset) 
                           
-                          # Get/Search tweets again
-                            results = self.getTweetsStandard7Days(id, dateToSearch)
-                            #results = self.getTweetsSandbox30Days(id, dateToSearch)
+                        # Get/Search tweets again
+                        results = self.getTweetsStandard7Days(minID, dateToSearch)
+                        #results = self.getTweetsSandbox30Days(id, dateToSearch)
 
-                        else: # not 429
-                            print("--- Exception: %s" % (exception))
-                            return False
-                    else: # not status_code in exception
-                        print("--- Exception: %s %s" % (exception.__class__, exception))
+                    else: # Is no rate limit exception
+                        print("Exception: %s %s" % (exception.__class__, exception))
                         return False
                 
-
                 if results == False:
-                    print("--- MyError: whatToSearch is faild in getTweets...().")
+                    print("MyError: whatToSearch is faild in getTweets...().")
                     return False
 
                 tweets = results[0]
                 nextRequest = results[1]
 
-                numberOfTweetsNotInserted = 0
                 countTweets = 0
-                textSet = set()
-                idSet = set()
+                notInsertedCount = 0
+                setOfText = set()
+                setOfID = set()
 
                 for tweet in tweets:
                     countTweets += 1
 
-                    # Add tweet to sets
-                    idSet.add(tweet['id_str'])
-                    textSet.add(tweet['full_text'])
+                    # Add tweet ID/text to sets
+                    setOfID.add(tweet['id_str'])
+                    setOfText.add(tweet['full_text'])
 
                     # Add tweet to database
-                    if DBManager.DBManager().addTweet(id, tweet, nextRequest) != True:
-                        numberOfTweetsNotInserted += 1
+                    if DBManager.DBManager().addTweet(minID, tweet, nextRequest) != True:
+                        notInsertedCount += 1
 
 
-                uniqeTweetsId = len(idSet)
-                uniqeTweetsText = len(textSet)
+                uniqeIDCount = len(setOfID)
+                uniqeTextCount = len(setOfText)
+                insertedCount = countTweets - notInsertedCount
 
-                print("--- In whatToSearch() \n\t%d tweets received \n\t%d uniqe(id) \n\t%d uniqe(text)" % (countTweets, len(idSet), len(textSet)))
-
-                numberOfInsertedTweets = countTweets - numberOfTweetsNotInserted
+                print("In whatToSearch(): \n\t%d tweets received" % (countTweets))
                 if countTweets > 0:
-                    print("%d tweets inserted to DB." % (numberOfInsertedTweets))
+                    print("\t%d is uniqe(id), %d is uniqe(text)" % (uniqeIDCount, uniqeTextCount))
+                    print("\t%d tweets inserted to DB." % (insertedCount))
 
-                if countTweets == 0: 
-                    besidesIDSet.add(id)
-                    print("0 Tweets received, Check the reason.")
-                elif countTweets > 0 and numberOfInsertedTweets == 0: 
-                    print("0 Tweets inseted to DB, Check the reason.")
-                    besidesIDSet.add(id)
-                elif countTweets > 0 and numberOfInsertedTweets < uniqeTweetsId: 
-                    print("Not all unique(id) tweets have been inserted to DB, Check the reason.")
-                elif countTweets > 0 and numberOfInsertedTweets == uniqeTweetsId:
-                    print("All unique(id) tweets of stock %s (%s) for date %s have been inserted to DB!" % (name, symbol, dateToSearch.date()))
-                    besidesIDSet.add(id)
-
-                minTuple = self.getMinTweetsInDay(dateToSearch, besidesIDSet) # [0]= count, [1]=id
-
-                if minTuple != False:
-                    minTweets = minTuple[0]
-                    id = minTuple[1]
+                    if insertedCount == 0: 
+                        besidesIDSet.add(minID)
+                    elif insertedCount < uniqeIDCount: 
+                        print("\tNot all unique(id) tweets has been inserted to DB.")
+                    elif insertedCount == uniqeIDCount:
+                        print("\tAll unique(id) tweets of stock %s (%s) for date %s have been inserted to DB!" % (name, symbol, dateToSearch.date()))
+                        besidesIDSet.add(minID)
                 else:
-                    print("--- MyError: whatToSearch is faild in getMinTweetsInDay().")
+                    besidesIDSet.add(minID)
+
+                minTuple = self.getMinTweetCountAndIDByDay(dateToSearch, besidesIDSet) # [0]= count, [1]=id
+                if minTuple != False:
+                    minCount = minTuple[0]
+                    minID = minTuple[1]
+                else:
+                    print("MyError: whatToSearch is faild in getMinTweetsInDay().")
                     return False
 
             dateToSearch = dateToSearch + datetime.timedelta(days=1) # Add days to date
 
 
-    def getTweetsPremium30Days(self, id, date):
-        #print("--- In getTweetsPremium30Days function ---")
+    def getTweetsStandard7Days(self, id, date):
 
         # Get name & symbol
-        stockNameSymbol = DBManager.DBManager().getNameAndSymbolOfStock(id) # [0]=name, [1]=symbol
+        nameSymbol = DBManager.DBManager().getNameAndSymbolByID(id) # [0]=name, [1]=symbol
+        if nameSymbol == False:
+            print("MyError: getTweets is faild in getNameAndSymbolByID().")
+            return False
+        name = nameSymbol[0]
+        symbol = nameSymbol[1]
+
+        # Preparing the parameters for the request
+        nameLower = name.lower()
+        nameCapitalize = name.capitalize()
+        nameUpper = name.upper()
+
+        symbolLower = symbol.lower()
+        symbolCapitalize = symbol.capitalize()
+        symbolUpper = symbol.upper()
+
+        resultType = 'mixed' # (mixed, recent, popular) is options
+        
+        count = 100
+
+        if date.date() == datetime.datetime.now().date():
+            since = (date - datetime.timedelta(days=1)).date()
+            until = date.date()
+        elif date.date() <= datetime.datetime.now().date():
+            since = date.date()
+            until = (date + datetime.timedelta(days=1)).date()
+
+        since = str(since)
+        until = str(until)
+
+        lang = "en"
+
+        #notQ = self.getNotQByID(id)
+        #q = "%s $%s %s" % (nameLower, symbolLower, notQ)
+        q = "%s $%s" % (nameLower, symbolLower)
+        query = "lang:%s %s" % (lang, q)
+
+
+        RESOURCE = 'search/tweets'
+        PARAMS = {'q':q, 'count':count, 'lang':lang, 'result_type':resultType, 'since':since, 'until':until,'tweet_mode':'extended'}
+
+        # Get the tweets from twitter
+        r = TwitterPager(Twitter.twitterApi, RESOURCE, PARAMS)
+
+        tweetsList = []
+        idSet = set()
+        countTweets = 0
+
+        for item in r.get_iterator(wait = Twitter.waite): # 5 for 180 call per 15 minutes
+            if 'full_text' in item:
+                # Get text from tweet without new lines
+                text = item['full_text'].replace("\n", " ")
+
+                countTweets += 1
+
+                tweetsList.append(item)
+
+                idSet.add(item['id_str'])
+
+                # Print tweet number, text, id, created_at
+                print("%d) %s \n\tid: %s\n\tcreated_at: %s" % (countTweets, text, item['id_str'], item['created_at']))
+                if countTweets >= Twitter.maxTweets: 
+                    break
+            elif 'message' in item :
+               print ('ERROR message: %s, code:(%d).' % (item['message'], item['code']))
+               return False
+
+
+        print("In getTweetsStandard7Days(): \n\t%d tweets received" % (countTweets))
+        if countTweets > 0:
+            print("\t%d uniqe(id)" % (len(idSet)))
+
+        results = [tweetsList, "%s, PARAMS: %s" % (RESOURCE, PARAMS)]
+        return results
+
+
+    def getTweetsPremium30Days(self, id, date):
+
+        # Get name & symbol
+        stockNameSymbol = DBManager.DBManager().getNameAndSymbolByID(id) # [0]=name, [1]=symbol
         if stockNameSymbol == False:
-            print("--- MyError: getTweets is faild in getNameAndSymbolOfStock().")
+            print("MyError: getTweets is faild in getNameAndSymbolByID().")
             return False
         name = stockNameSymbol[0]
         symbol = stockNameSymbol[1]
@@ -303,7 +300,7 @@ class Twitter:
         PARAMS = {'query':query, 'maxResults':maxResults, 'fromDate':since, 'toDate':until}
 
         # Get the tweets from twitter
-        r = Twitter.api.request(RESOURCE, PARAMS)
+        r = Twitter.twitterApi.request(RESOURCE, PARAMS)
 
         # Get the response as a JSON object.
         rJson = TwitterResponse(r, False).json()
@@ -338,12 +335,11 @@ class Twitter:
            
 
     def getTweetsSandbox30Days(self, id, date):
-        #print("--- In getTweetsSandbox30Days function ---")
 
         # Get name & symbol
-        stockNameSymbol = DBManager.DBManager().getNameAndSymbolOfStock(id) # [0]=name, [1]=symbol
+        stockNameSymbol = DBManager.DBManager().getNameAndSymbolByID(id) # [0]=name, [1]=symbol
         if stockNameSymbol == False:
-            print("--- MyError: getTweets is faild in getNameAndSymbolOfStock().")
+            print("MyError: getTweets is faild in getNameAndSymbolByID().")
             return False
         name = stockNameSymbol[0]
         symbol = stockNameSymbol[1]
@@ -376,7 +372,7 @@ class Twitter:
         LABEL = 'prob'
         RESOURCE = 'tweets/search/%s/:%s' % (PRODUCT, LABEL)
 
-        notQ = self.getNotQForId(id)
+        notQ = self.getNotQByID(id)
         #q = "%s %s OR %s %s OR %s %s" % (nameLower, symbolUpper, nameCapitalize, symbolUpper, nameUpper, symbolUpper)
         q = "%s %s #%s %s" % (nameLower, symbolLower, symbolLower, notQ)
         lang = "en"
@@ -384,7 +380,7 @@ class Twitter:
         PARAMS = {'query':query, 'maxResults':maxResultsSandbox, 'fromDate':since, 'toDate':until}
 
         # Get the tweets from twitter
-        r = Twitter.api.request(RESOURCE, PARAMS)
+        r = Twitter.twitterApi.request(RESOURCE, PARAMS)
 
         # Get the response as a JSON object.
         rJson = TwitterResponse(r, False).json()
@@ -420,7 +416,7 @@ class Twitter:
             print("Exception: %s" % (exception))
             return False
 
-        print("--- In getTweetsSandbox30Days() \n\t%d tweets received \n\t%d uniqe(id)" % (countTweets, len(idSet)))
+        print("In getTweetsSandbox30Days() \n\t%d tweets received \n\t%d uniqe(id)" % (countTweets, len(idSet)))
 
         if next:
             nextRequest = "%s, {'query':%s, 'maxResults':%s, 'fromDate':%s, 'toDate':%s, 'next':%s}" % (RESOURCE, query, maxResultsSandbox, since, until, next)
@@ -432,158 +428,22 @@ class Twitter:
         return results
 
 
-    def getTweetsStandard7Days(self, id, date):
-        #print("--- In getTweetsStandard7Days function ---")
-
-        # Get name & symbol
-        stockNameSymbol = DBManager.DBManager().getNameAndSymbolOfStock(id) # [0]=name, [1]=symbol
-        if stockNameSymbol == False:
-            print("--- MyError: getTweets is faild in getNameAndSymbolOfStock().")
-            return False
-        name = stockNameSymbol[0]
-        symbol = stockNameSymbol[1]
-
-        # Preparing the parameters for the request
-        nameLower = name.lower()
-        nameCapitalize = name.capitalize()
-        nameUpper = name.upper()
-
-        symbolLower = symbol.lower()
-        symbolCapitalize = symbol.capitalize()
-        symbolUpper = symbol.upper()
-
-        resultType = 'mixed' # (mixed, recent, popular) is options
-        
-        count = 100
-
-        if date.date() == datetime.datetime.now().date():
-            since = (date - datetime.timedelta(days=1)).date()
-            until = date.date()
-        elif date.date() <= datetime.datetime.now().date():
-            since = date.date()
-            until = (date + datetime.timedelta(days=1)).date()
-
-        since = str(since)
-        until = str(until)
-
-        RESOURCE = 'search/tweets'
-
-        notQ = self.getNotQForId(id)
-        #q = "%s $%s OR %s $%s OR %s $%s" % (nameLower, symbolLower, nameCapitalize, symbolUpper, nameUpper, symbolUpper)
-        #q = "%s $%s %s" % (nameLower, symbolLower, notQ)
-        q = "%s $%s" % (nameLower, symbolLower)
-        lang = "en"
-        query = "lang:%s %s" % (lang, q)
-        PARAMS = {'q':q, 'count':count, 'lang':lang, 'result_type':resultType, 'since':since, 'until':until,'tweet_mode':'extended'}
-
-        # Get the tweets from twitter
-        r = TwitterPager(Twitter.api, RESOURCE, PARAMS)
-
-        tweetsList = []
-        idSet = set()
-        countTweets = 0
-
-        for item in r.get_iterator(wait = Twitter.waite): # 5 for 180 call per 15 minutes
-            if 'full_text' in item:
-                text = item['full_text'].replace("\n", " ")
-
-                countTweets += 1
-                tweetsList.append(item)
-                idSet.add(item['id_str'])
-
-                print("%d) %s \n\tid: %s \n\tcreated_at: %s" % (countTweets, text, item['id_str'], item['created_at']))
-                if countTweets >= Twitter.maxTweet: 
-                    break
-            elif 'message' in item :
-               print ('ERROR message: %s, code:(%d).' % (item['message'], item['code']))
-               return False
-
-
-        print("--- In getTweetsStandard7Days() \n\t%d tweets received \n\t%d uniqe(id)" % (countTweets, len(idSet)))
-
-        results = [tweetsList, "%s, PARAMS: %s" % (RESOURCE, PARAMS)]
-        return results
-
-
-    def GetTweets2(self, id, date):
-        #print("--- In searchTweets function ---")
-
-        stockNameSymbol = DBManager.DBManager().getNameAndSymbolOfStock(id) # [0]=name, [1]=symbol
-
-        name = stockNameSymbol[0]
-        nameLower = name.lower()
-        nameCapitalize = name.capitalize()
-        nameUpper = name.upper()
-
-        symbol = stockNameSymbol[1]
-        symbolLower = symbol.lower()
-        symbolCapitalize = symbol.capitalize()
-        symbolUpper = symbol.upper()
-
-        term = "%s %s OR %s %s OR %s %s" % (nameLower, symbolUpper, nameCapitalize, symbolUpper, nameUpper, symbolUpper)
-
-        lang = "en"
-        resultType = "mixed" # mixed / recent / popular
-        count = 600
-
-        if date.date() == datetime.datetime.now().date():
-            since = (date - datetime.timedelta(days=1)).date()
-            until = date.date()
-        elif date.date() <= datetime.datetime.now().date():
-            since = date.date()
-            until = (date + datetime.timedelta(days=1)).date()
-
-        # Get tweets from Twitter
-        try:
-            # Get statuses
-            statuses = Twitter.apiOfTwitter.GetSearch(term=term, until=until, since=since, count=count, lang=lang, result_type=resultType)
-
-            idSet = set()
-            for tweet in statuses:
-                idSet.add(tweet['id_str'])
-
-            print("%d Tweets returned!" % (countTweets))
-            print("%d Tweets is uniqe!" % (len(idSet)))
-            return statuses
-        except BaseException as exception:
-            print("--- Exception: ", exception)
-            return False
-
-
-    def GetTweets1(self, query):
-        #print("--- In search function ---")
-        if query == None:
-            print("The function Search() received an empty parameter")
-        elif query != None:
-            # Get statuses
-            statuses = Twitter.apiOfTwitter.GetSearch(raw_query= query)
-
-            print(len(statuses), " Statuses returned!")
-            print(type(statuses))
-            print(statuses)
-
-            print(type(statuses[0]))
-            print(statuses[0])
-
-            return statuses
-
-
-    def getNotQForId(self, currentId):
+    def getNotQByID(self, currentId):
         notQ = ""
         allID = DBManager.DBManager().getAllStocksID()
         for id in allID:
             if id[0] != currentId:
-                stockNameAndSymbol = DBManager.DBManager().getNameAndSymbolOfStock(id) #[0]=name, [1]=symbol
+                stockNameAndSymbol = DBManager.DBManager().getNameAndSymbolByID(id) #[0]=name, [1]=symbol
                 name = stockNameAndSymbol[0].replace(" ", "")
                 symbol = stockNameAndSymbol[1].replace(" ", "")
                 notQ += "-" + name + " -" + symbol + " "
         return notQ
 
 
-    def getMinTweetsInDay(self, date, besidesID=None):
+    def getMinTweetCountAndIDByDay(self, date, besidesID=None):
         allStocksID = DBManager.DBManager().getAllStocksID()
         if allStocksID:
-            min = Twitter.threshold
+            min = Twitter.thresholdTweets
             idOfMin = None
 
             for stockID in allStocksID:
@@ -600,7 +460,7 @@ class Twitter:
                     min = currentCount
                     idOfMin = id
             
-            if min != Twitter.threshold + 501:
+            if min != Twitter.thresholdTweets + 501:
                 minTuple = (min, idOfMin)
                 return minTuple
             else:
@@ -609,17 +469,15 @@ class Twitter:
             return False
 
 
-    def verifyCredentials(self):
-        #print("--- In verifyCredentials function ---")
-        res = Twitter.apiOfTwitter.VerifyCredentials()
+    def getverifyCredentials(self):
+        res = Twitter.apiOfTwitter.getverifyCredentials()
         return res
 
 
-    def checkRateLimit(self):
-        r = Twitter.api.request('application/rate_limit_status')
+    def getRateLimit(self):
+        r = Twitter.twitterApi.request('application/rate_limit_status')
 
         rateLimitDict = r.json()
-        x = 4
         if 'message' in rateLimitDict:
             print ('%s (%d)' % (item['message'], item['code']))
             return False
@@ -627,34 +485,16 @@ class Twitter:
             return rateLimitDict
 
 
-                      
-    def checkRateLimitOld(self):
-        #print("--- In checkRateLimitOld function ---")
-
-        Twitter.apiOfTwitter.InitializeRateLimit()
-        rate_limit = Twitter.apiOfTwitter.rate_limit
-        rateLimitDict = (rate_limit).__dict__
-
-        try:
-            resources_dict = rateLimitDict['resources']
-            search_dict = resources_dict['search']
-            application_dict = resources_dict['application']
-            print(json.dumps(search_dict, indent=4))
-            print(json.dumps(application_dict, indent=4))
-        except KeyError:
-            print("--- MyError: In checkRateLimitOld function, The key is not found in the dictionary.")
-
-
     def writeToFile(self, data):
         desktopPath = "C:\\Users\\Gal Tzemach\\Desktop"
 
-        # Open file
+        # Open file with current datetime name
         fileToWrite = open(desktopPath + "\\" + str(datetime.datetime.now()) + ".txt", "a")
 
         # Write current date & time to file
         fileToWrite.write("\n" + (datetime.datetime.now()).strftime("%d/%m/%Y %H:%M:%S") + "\n")
 
-        if data is dict:
+        if isinstance(data, dict):
             data = json.dumps(data, indent=4)
 
         # Write data to file

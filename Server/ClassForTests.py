@@ -87,7 +87,7 @@ class ClassForTests(object):
         seaborn.set()
 
         # Get name and symbol
-        nameSymbol = DBManager.DBManager().getNameAndSymbolOfStock(id)
+        nameSymbol = DBManager.DBManager().getNameAndSymbolByID(id)
         name = nameSymbol[0]
         symbol = nameSymbol[1]
 

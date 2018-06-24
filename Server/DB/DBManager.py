@@ -14,20 +14,9 @@ class DBManager(metaclass=Singleton.Singleton):
         super().__init__(**kwargs)
 
         if self.readDataBaseKeysFromFile():
-            
-            # Add
-            #self.addNewUser("g", "t", "gt@gmail.com", "0000000000", "123")
-            ##return boolean
-
-            # signin
-
-
-
-
-            #DBManager.db.close()
             pass
         else:
-            print("--- MyError: Could not connect to database.")
+            print("Could not connect to database.")
 
 
 
@@ -166,7 +155,7 @@ class DBManager(metaclass=Singleton.Singleton):
             return results[0][0]
 
 
-    def getNameAndSymbolOfStock(self, id):
+    def getNameAndSymbolByID(self, id):
         # prepare a cursor object using cursor() method
         cursor = DBManager.db.cursor()
 
@@ -182,11 +171,11 @@ class DBManager(metaclass=Singleton.Singleton):
             # Fetch
             results = cursor.fetchone()
         except BaseException as exception:
-            print("--- MyError: getNameAndSymbolOfStock is failed")
+            print("--- MyError: getNameAndSymbolByID is failed")
             print("--- Exception: ", exception)
             return False
         else:
-            #print("--- MySuccess: getNameAndSymbolOfStock is successfully.")
+            #print("--- MySuccess: getNameAndSymbolByID is successfully.")
             return results
 
 
@@ -337,7 +326,7 @@ class DBManager(metaclass=Singleton.Singleton):
             return True
 
 
-    def getLastDateOfStockPricesHistory(self, id):
+    def getLastDateByID(self, id):
         # prepare a cursor object using cursor() method
         cursor = DBManager.db.cursor()
 
@@ -354,15 +343,15 @@ class DBManager(metaclass=Singleton.Singleton):
             # Fetch
             results = cursor.fetchone()
         except BaseException as exception:
-            print("--- MyError: getLastDateOfStockPricesHistory is failed")
+            print("--- MyError: getLastDateByID is failed")
             print("--- Exception: ", exception)
             return False
         else:
-            #print("--- MySuccess: getLastDateOfStockPricesHistory is successfully.")
+            #print("--- MySuccess: getLastDateByID is successfully.")
             return results
 
 
-    def getSymbolOfStockByID(self, id):
+    def getSymbolByID(self, id):
         # prepare a cursor object using cursor() method
         cursor = DBManager.db.cursor()
 
@@ -380,11 +369,11 @@ class DBManager(metaclass=Singleton.Singleton):
             # Fetch
             results = cursor.fetchone()
         except BaseException as exception:
-            print("--- MyError: getSymbolOfStockByID is failed")
+            print("--- MyError: getSymbolByID is failed")
             print("--- Exception: ", exception)
             return False
         else:
-            #print("--- MySuccess: getSymbolOfStockByID is successfully.")
+            #print("--- MySuccess: getSymbolByID is successfully.")
             return results
 
 
@@ -589,4 +578,228 @@ class DBManager(metaclass=Singleton.Singleton):
             return False
         else:
             #print("--- MySuccess: setIsConnect is successfully.")
+            return True
+
+
+    def getIDByEmail(self, email):
+        # prepare a cursor object using cursor() method
+        cursor = DBManager.db.cursor()
+
+        # Prepare SQL query 
+        sql = """SELECT id 
+                 FROM users
+                 WHERE email = \"%s\" """ % (email)
+        try:
+            # Execute the SQL command
+            cursor.execute(sql)
+
+            # Fetch
+            results = cursor.fetchall()
+        except BaseException as exception:
+            print("--- MyError: getIDByEmail is failed")
+            print("--- Exception: ", exception)
+            return False
+        else:
+            return results
+
+
+    def getFullNameByID(self, ID):
+        # prepare a cursor object using cursor() method
+        cursor = DBManager.db.cursor()
+
+        # Prepare SQL query 
+        sql = """SELECT first_name, last_name 
+                 FROM users
+                 WHERE id = %d """ % (ID)
+        try:
+            # Execute the SQL command
+            cursor.execute(sql)
+
+            # Fetch
+            results = cursor.fetchall()
+        except BaseException as exception:
+            print("--- MyError: getFullNameByID is failed")
+            print("--- Exception: ", exception)
+            return False
+        else:
+            return results
+
+
+    def getExplanationBySymbol(self, symbol):
+        # prepare a cursor object using cursor() method
+        cursor = DBManager.db.cursor()
+
+        # Prepare SQL query 
+        sql = """SELECT explanation 
+                 FROM stocks
+                 WHERE symbol = \"%s\" """ % (symbol)
+        try:
+            # Execute the SQL command
+            cursor.execute(sql)
+
+            # Fetch
+            results = cursor.fetchall()
+        except BaseException as exception:
+            print("--- MyError: getExplanationBySymbol is failed")
+            print("--- Exception: ", exception)
+            return False
+        else:
+            return results
+
+
+    def getStockIDBySymbol(self, symbol):
+        # prepare a cursor object using cursor() method
+        cursor = DBManager.db.cursor()
+
+        # Prepare SQL query 
+        sql = """SELECT id 
+                 FROM stocks
+                 WHERE symbol = \"%s\" """ % (symbol)
+        try:
+            # Execute the SQL command
+            cursor.execute(sql)
+
+            # Fetch
+            results = cursor.fetchall()
+        except BaseException as exception:
+            print("--- MyError: getStockIDBySymbol is failed")
+            print("--- Exception: ", exception)
+            return False
+        else:
+            return results
+
+
+    def getAllTweetsByStockID(self, stockID):
+        # prepare a cursor object using cursor() method
+        cursor = DBManager.db.cursor()
+        # Prepare SQL query 
+        sql = """SELECT created_at, followers_count, sentiment, text
+                 FROM tweets
+                 WHERE stock_id = %d """ % (stockID)
+        try:
+            # Execute the SQL command
+            cursor.execute(sql)
+
+            # Fetch
+            results = cursor.fetchall()
+        except BaseException as exception:
+            print("--- MyError: getAllTweetsByStockID is failed")
+            print("--- Exception: ", exception)
+            return False
+        else:
+            #print("--- MySuccess: getAllStocks is successfully.")
+            return results
+
+
+    def getMyStocksIDs(self, ID):
+        # prepare a cursor object using cursor() method
+        cursor = DBManager.db.cursor()
+        # Prepare SQL query 
+        sql = """SELECT stock_id
+                 FROM users_stocks
+                 WHERE user_id = %d """ % (ID)
+        try:
+            # Execute the SQL command
+            cursor.execute(sql)
+
+            # Fetch
+            results = cursor.fetchall()
+        except BaseException as exception:
+            print("--- MyError: getMyStocks is failed")
+            print("--- Exception: ", exception)
+            return False
+        else:
+            #print("--- MySuccess: getMyStocks is successfully.")
+            return results
+
+
+    def getStockByID(self, stockID):
+        # prepare a cursor object using cursor() method
+        cursor = DBManager.db.cursor()
+        # Prepare SQL query 
+        sql = """SELECT name, symbol, country, industry, subsector 
+                 FROM stocks
+                 WHERE id = %d """ % (stockID)
+        try:
+            # Execute the SQL command
+            cursor.execute(sql)
+
+            # Fetch
+            results = cursor.fetchall()
+        except BaseException as exception:
+            print("--- MyError: getStockByID is failed")
+            print("--- Exception: ", exception)
+            return False
+        else:
+            #print("--- MySuccess: getStockByID is successfully.")
+            return results
+
+
+    def getAllStocksIDs(self):
+        # prepare a cursor object using cursor() method
+        cursor = DBManager.db.cursor()
+        # Prepare SQL query 
+        sql = """SELECT id 
+                 FROM stocks"""
+        try:
+            # Execute the SQL command
+            cursor.execute(sql)
+
+            # Fetch
+            results = cursor.fetchall()
+        except BaseException as exception:
+            print("--- MyError: getAllStocksIDs is failed")
+            print("--- Exception: ", exception)
+            return False
+        else:
+            #print("--- MySuccess: getAllStocksIDs is successfully.")
+            return results
+
+
+    def deleteStockByIDs(self, userID, stockID):
+        # prepare a cursor object using cursor() method
+        cursor = DBManager.db.cursor()
+
+        # Prepare SQL query 
+        sql = """DELETE FROM users_stocks
+                 WHERE user_id = %d and stock_id = %d """ % \
+                    (userID, stockID)
+        try:
+            # Execute the SQL command
+            cursor.execute(sql)
+            # Commit your changes in the database
+            DBManager.db.commit()
+        except BaseException as exception:
+            # Rollback in case there is any error
+            DBManager.db.rollback()
+            print("deleteStockByIDs is failed")
+            print(exception)
+            return False
+        else:
+            #print("deleteStockByIDs is successfully.")
+            return True
+
+
+    def addStockToUser(self, userID, stockID):
+        # prepare a cursor object using cursor() method
+        cursor = DBManager.db.cursor()
+
+        # Prepare SQL query 
+        sql = """INSERT INTO users_stocks
+                 (user_stock_id, user_id, stock_id)
+                 VALUES ('%d', '%d', '%d')""" % \
+                 (int(str(userID) + str(stockID)), userID, stockID)
+        try:
+           # Execute the SQL command
+           cursor.execute(sql)
+           # Commit your changes in the database
+           DBManager.db.commit()
+        except BaseException as exception:
+           # Rollback in case there is any error
+           DBManager.db.rollback()
+           print("addStockToUser is failed")
+           print(exception)
+           return False
+        else:
+            #print("addStockToUser is successfully.")
             return True

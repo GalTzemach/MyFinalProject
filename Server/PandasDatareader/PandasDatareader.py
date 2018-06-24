@@ -1,12 +1,10 @@
 import pandas_datareader.data as web
-#from datetime 
 import datetime
 from DB import DBManager
 import matplotlib.pyplot as plt
 import seaborn as sb
 
 class PandasDatareder(object):
-    """description of class"""
 
 
     def __init__(self, **kwargs):
@@ -28,11 +26,13 @@ class PandasDatareder(object):
 
         if allStockID:
             for stockID in allStockID:
-                # Get the id
                 id = stockID[0]
 
                 # Getting the last date already exists
-                lastDate = DBManager.DBManager().getLastDateOfStockPricesHistory(id)[0]
+                lastDate = DBManager.DBManager().getLastDateByID(id)
+                if lastDate:
+                    lastDate = lastDate[0]
+
                 if type(lastDate) == 'datetime':
                     lastDate = lastDate.date()
 
@@ -52,13 +52,20 @@ class PandasDatareder(object):
     def retrieveStockPriceHistory(self, id, start, end):
 
         # Get symbol by id
-        symbol = DBManager.DBManager().getSymbolOfStockByID(id)[0]
+        symbol = DBManager.DBManager().getSymbolByID(id)
+        if symbol:
+            symbol = symbol[0]
 
         try:
             # Get stock price history
             results = web.DataReader(symbol, 'morningstar', start, end)
         except BaseException as exception:
              print("--- Exception: ", exception)
+             try:
+                 quit(1)
+             except SystemExit as se:
+                 print("Exit with %s" % (str(se)))
+
 
         print(type(results))
         print(results)

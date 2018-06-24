@@ -10,6 +10,7 @@ class signUpInGUILogic(QMainWindow, signUpInGUI.Ui_MainWindow):
 
     OK = "ok"
     isSignInn = False
+    ID = None
 
     def __init__(self):
         super(self.__class__, self).__init__()
@@ -47,10 +48,11 @@ class signUpInGUILogic(QMainWindow, signUpInGUI.Ui_MainWindow):
             if isinstance(isSignin, bool) and isSignin == True:
 
                 self.isSignInn = True
+
+                email = self.email_lineEdit_2.text()
+                self.ID = self.getIDByEmail(email)
+
                 self.close()
-
-                #clientNetwork.clientNetwork().exit()
-
             else:
                 self.error_label_2.setText(str(isSignin))
         else:
@@ -176,6 +178,10 @@ class signUpInGUILogic(QMainWindow, signUpInGUI.Ui_MainWindow):
         self.error_label.clear()
 
 
+    def getIDByEmail(self, email):
+        return clientNetwork.clientNetwork().getIDByEmail(email)
+
+
 
     def closeEvent(self, QCloseEvent):
         pass
@@ -186,7 +192,7 @@ def start():
     form = signUpInGUILogic()                 
     form.show()   
     app.exec_()  
-    return form.isSignInn
+    return (form.isSignInn, form.ID)
     
 
 
