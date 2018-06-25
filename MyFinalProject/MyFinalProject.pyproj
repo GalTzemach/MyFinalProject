@@ -4,7 +4,8 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>167e05c3-562c-4d2e-b864-a17dc21be3c0</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>TestPlots\module1.py</StartupFile>
+    <StartupFile>
+    </StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -21,49 +22,12 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="ClientApp.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="DB\__init__.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Main.py" />
-    <Compile Include="Quandl\quandl.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Quandl\__init__.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="ServerApp.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="TestPlots\module1.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="TestPlots\__init__.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Twitterr\tw.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Twitterr\__init__.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="UI\__init__.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Watson\__init__.py">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="DB\" />
     <Folder Include="C:\Users\Gal Tzemach\source\repos\MyFinalProject\MyFinalProject\Twitterr\" />
-    <Folder Include="Quandl\" />
-    <Folder Include="TestPlots\" />
-    <Folder Include="Twitterr\" />
-    <Folder Include="UI\" />
-    <Folder Include="Watson\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

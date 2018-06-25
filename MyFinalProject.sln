@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27130.2010
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "MyFinalProject", "MyFinalProject\MyFinalProject.pyproj", "{167E05C3-562C-4D2E-B864-A17DC21BE3C0}"
-EndProject
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "Client", "Client\Client.pyproj", "{CD2C0C63-E994-4402-9BD4-01A679738122}"
 EndProject
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "Server", "Server\Server.pyproj", "{2DC58B84-3546-43F4-B537-57E68EE43B7A}"
@@ -15,8 +13,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{167E05C3-562C-4D2E-B864-A17DC21BE3C0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{167E05C3-562C-4D2E-B864-A17DC21BE3C0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CD2C0C63-E994-4402-9BD4-01A679738122}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{CD2C0C63-E994-4402-9BD4-01A679738122}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2DC58B84-3546-43F4-B537-57E68EE43B7A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
