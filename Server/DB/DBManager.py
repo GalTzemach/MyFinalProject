@@ -437,7 +437,7 @@ class DBManager(metaclass=Singleton.Singleton):
         return idCountDict
 
 
-    def getClosePricePerDateById(self, id):
+    def getDateCloseDictById(self, id):
         # prepare a cursor object using cursor() method
         cursor = DBManager.db.cursor()
 
@@ -452,36 +452,38 @@ class DBManager(metaclass=Singleton.Singleton):
             # Fetch
             results = cursor.fetchall()
         except BaseException as exception:
-            print("--- MyError: getClosePricePerDateById is failed")
+            print("--- MyError: getDateCloseDictById is failed")
             print("--- Exception: ", exception)
             return False
         else:
-            #print("--- MySuccess: getClosePricePerDateById is successfully.")
+            #print("--- MySuccess: getDateCloseDictById is successfully.")
             dateClose = {}
             for res in results:
                 dateClose[res[0]] = res[1]
             return dateClose
 
 
-    def getAvgSentimentPerDateById(self, id):
-        dateSentiment = {}
+    def getAvgSentimentByStockID(self, id):
+        # Create dateSentiment dict
+        dateSentimentDict = {}
 
-        # Get all uniqe Dates of tweets of stock
-        allDatesOfTweets = self.getAllDatesOfTweetsById(id)
+        # Get all uniqe Dates of tweets by stockID
+        allDates = self.getAllDatesOfTweetsById(id)
 
-        for date in allDatesOfTweets:
-            # Get all sentiment of stock per date
-            allSentimentPerDateAndId = self.getSentimentByDateAndId(date[0], id)
+        for date in allDates:
+            # Get all sentiments by date & stockID
+            allSentiment = self.getSentimentByDateAndId(date[0], id)
 
             # Create AVG of sentiment per date
-            sumOfSentiment = 0
-            for sentiment in allSentimentPerDateAndId:
-                sumOfSentiment += sentiment[0]
-            avgSentimentPerDate = sumOfSentiment / len(allSentimentPerDateAndId)
+            TotalSentiment = 0
+            for sentiment in allSentiment:
+                TotalSentiment += sentiment[0]
+            avgSentiment = TotalSentiment / len(allSentiment)
 
-            dateSentiment[date[0]] = avgSentimentPerDate
+            # Add date avgSentiment to dict
+            dateSentimentDict[date[0]] = avgSentiment
 
-        return dateSentiment
+        return dateSentimentDict
         
 
     def getAllDatesOfTweetsById(self, id):

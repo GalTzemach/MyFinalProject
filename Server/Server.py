@@ -11,13 +11,13 @@ class Server():
 
     def __init__(self):
 
-        serverNetwork.serverNetwork()
+        #serverNetwork.serverNetwork()
         #twitter = Twitter.Twitter()
         #watson = Watson.Watson()
         #pandasDatareder = PandasDatareader.PandasDatareder()
 
         #TestTwitterAPI.TestTwitterAPI()
-        #ClassForTests.ClassForTests()
+        ClassForTests.ClassForTests()
 
         DBManager.DBManager().db.close()
 

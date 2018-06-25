@@ -1,5 +1,6 @@
 import datetime
 import copy
+import threading, _thread
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -9,81 +10,106 @@ import seaborn
 
 from DB import DBManager
 
+
 class ClassForTests(object):
-    """description of class"""
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        #self.upDownWithPredict()
-        #self.myRegression()
+
+        for id in [1,2,3,4,5,6,7,8,9,11,13,14,15]:
+            closeSentimentList = self.getCloseAvgSentimentList(id)
+            self.linearRegression(closeSentimentList, id)
+
+            changeCloseSentimentList = self.getChangeCloseAvgSentimentList(id)
+            self.linearRegression(changeCloseSentimentList, id)
+        
+
+        #id = 2
+        #closeSentimentList = self.getCloseAvgSentimentList(id)
+        #self.linearRegression(closeSentimentList, id)
+
+        #changeCloseSentimentList = self.getChangeCloseAvgSentimentList(id)
+        #self.linearRegression(changeCloseSentimentList, id)
+
+        #_thread.start_new_thread(self.myRegression, (closeSentimentList, id))
+        #_thread.start_new_thread(self.myRegression, (changeCloseSentimentList, id))
+
         #self.regression()
+        #self.upDownWithPredict()
 
-        id = 4
-        #closeAndSentimentList = self.realDataTest(id)
-        changeCloseAndSentimentList = self.realDataTestChangeClose(id)
-        self.myRegression(changeCloseAndSentimentList, id)
 
-    def realDataTest(self, id):
+
+    def getCloseAvgSentimentList(self, id):
         # Get close prices
-        closePrice = DBManager.DBManager().getClosePricePerDateById(id)
-        closePriceKeys = closePrice.keys()
+        closeDict = DBManager.DBManager().getDateCloseDictById(id)
 
-        # Get AVG sentument
-        avgSentiment = DBManager.DBManager().getAvgSentimentPerDateById(id)
-        avgSentimentKeys = avgSentiment.keys()
+        # Get avg sentiment
+        avgSentiment = DBManager.DBManager().getAvgSentimentByStockID(id)
 
-        closePriceList = []
+        # Create close & avg lists with same dates
+        closeList = []
         avgSentimentList = []
 
+        # Create keys
+        closeKeys = closeDict.keys()
+        avgSentimentKeys = avgSentiment.keys()    
+        
         for date in avgSentimentKeys:
-            if date in closePriceKeys:
-                closePriceList.append([closePrice[date]])
+            if date in closeKeys:
+                closeList.append([closeDict[date]])
                 avgSentimentList.append([avgSentiment[date]])
 
-        return [closePriceList, avgSentimentList]
+
+        return [avgSentimentList, closeList]
 
 
-    def realDataTestChangeClose(self, id):
-        # Get close prices
-        closePrice = DBManager.DBManager().getClosePricePerDateById(id)
-        closePriceKeys = closePrice.keys()
+    def getChangeCloseAvgSentimentList(self, id):
+        # Get close prices dict
+        closeDict = DBManager.DBManager().getDateCloseDictById(id)
 
-        # Changing closePrise dict to closePriceList list
-        closePriceList = closePrice.items()
-        closePriceList = list(closePriceList)
-        closePriceListOld = copy.copy(closePriceList)
+        # Create changeClose from close
+        # Create list from dict & copy
+        closeList = list(closeDict.items())
+        #closeListTemp = copy.copy(closeList)
 
-        # Turn change close from close on list
-        for i in range(len(closePriceListOld)):
-            if i == 0:
-                pass
-            else:
-                closePriceList[i] = (closePriceList[i][0], closePriceListOld[i][1] / closePriceListOld[i-1][1])
+        changeCloseListTemp = []
+
+        for i in range(len(closeList)):
+            if i != 0:
+                #closeList[i] = (closeList[i][0], closeList[i][1] / closeList[i-1][1]) #(key, value)
+                changeCloseListTemp.append((closeList[i][0], closeList[i][1] / closeList[i-1][1])) #(key, value)
+
+        #for i in range(len(closeListTemp)):
+        #    if i != 0:
+        #        closeList[i] = (closeList[i][0], closeListTemp[i][1] / closeListTemp[i-1][1]) #(key, value)
 
         # Remove the first element
-        del closePriceList[0]
+        #del closeList[0]
 
-        # Change again closePriceList list to closePrice dict
-        closePrice = dict(closePriceList)
+        # Convert list to dict again
+        changeCloseListTemp = dict(changeCloseListTemp)
 
+        # Get avg sentiment
+        avgSentiment = DBManager.DBManager().getAvgSentimentByStockID(id)
 
-        # Get average sentument
-        avgSentiment = DBManager.DBManager().getAvgSentimentPerDateById(id)
+        # Create changeClose & avg lists with same dates
+        # Create keys
+        closeKeys = changeCloseListTemp.keys()
         avgSentimentKeys = avgSentiment.keys()
 
-        closePriceList = []
+        changeCloseList = []
         avgSentimentList = []
 
         for date in avgSentimentKeys:
-            if date in closePriceKeys:
-                closePriceList.append([closePrice[date]])
+            if date in closeKeys:
+                changeCloseList.append([changeCloseListTemp[date]])
                 avgSentimentList.append([avgSentiment[date]])
 
-        return [closePriceList, avgSentimentList]
+        return [avgSentimentList, changeCloseList]
 
 
-    def myRegression(self, closeSentimentList, id):
+    def linearRegression(self, XYList, id):
         seaborn.set()
 
         # Get name and symbol
@@ -91,32 +117,38 @@ class ClassForTests(object):
         name = nameSymbol[0]
         symbol = nameSymbol[1]
 
-        x = sentiment = closeSentimentList[1]
-        y = close = closeSentimentList[0]
+        # Get x & y lists
+        x = sentiment = XYList[0]
+        y = close = XYList[1]
 
+        ## Test x & y
         #x = [[1],[2],[3]]
         #y = [[2],[4],[6]]
-
         #x = [[1],[2],[3],[4],[5],[7],[9]]
         #y = [[2],[5],[5],[9],[10],[10],[20]]
 
-        plt.title("%s (%s) \nRegression between close prise and sentiment" % (name, symbol))
+        # Name for Title and axises 
+        plt.title("%s (%s) Regression" % (name, symbol))
         plt.xlabel("Sentiment")
-        plt.ylabel("Change-Close")
+        plt.ylabel("Change/Close")
+
+        # Add the points to the graph
         plt.scatter(x, y)
 
         # Regression
         regression = linear_model.LinearRegression()
         regression.fit(x, y)
+        yPreditionsForLine = regression.predict(x)
 
-        # line
-        preditionsForLine = regression.predict(x)
-        plt.plot(x, preditionsForLine)
+        # Add the regression line to the graph
+        plt.plot(x, yPreditionsForLine)
 
         # Prediction
-        forPredict = [[0]]
-        predicted = regression.predict(forPredict)
-        plt.scatter(forPredict, predicted, color="red", linewidths=5)
+        xForPredict = [[0]]
+        yPredicted = regression.predict(xForPredict)
+
+        # Add the prediction point to the graph
+        plt.scatter(xForPredict, yPredicted, color="red", linewidths=5)
 
         plt.show()
 
