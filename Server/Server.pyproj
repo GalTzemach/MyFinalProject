@@ -43,6 +43,9 @@
     <Compile Include="PandasDatareader\__init__.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="robustLinearModel.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Server.py" />
     <Compile Include="Singleton.py">
       <SubType>Code</SubType>

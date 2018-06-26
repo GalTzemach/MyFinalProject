@@ -1,6 +1,7 @@
 import datetime
 import copy
 import threading, _thread
+import json
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -18,11 +19,19 @@ class ClassForTests(object):
 
 
         for id in [1,2,3,4,5,6,7,8,9,11,13,14,15]:
+            # Get name and symbol
+            nameSymbol = DBManager.DBManager().getNameAndSymbolByID(id)
+            name = nameSymbol[0]
+            symbol = nameSymbol[1]
+            print(name, symbol, ":")
+
             closeSentimentList = self.getCloseAvgSentimentList(id)
-            self.linearRegression(closeSentimentList, id)
+            #self.linearRegression(closeSentimentList, id)
+            self.myRansac(closeSentimentList, id, "Close")
 
             changeCloseSentimentList = self.getChangeCloseAvgSentimentList(id)
-            self.linearRegression(changeCloseSentimentList, id)
+            #self.linearRegression(changeCloseSentimentList, id)
+            self.myRansac(changeCloseSentimentList, id, "ChangeClose")
         
 
         #id = 2
@@ -136,8 +145,10 @@ class ClassForTests(object):
         plt.scatter(x, y)
 
         # Regression
-        regression = linear_model.LinearRegression()
+        regression = linear_model.LinearRegression(n_jobs=-1)
         regression.fit(x, y)
+        print("%s %s -> Score R^2=%f"%(name, symbol, regression.score(x,y)))
+
         yPreditionsForLine = regression.predict(x)
 
         # Add the regression line to the graph
@@ -146,6 +157,9 @@ class ClassForTests(object):
         # Prediction
         xForPredict = [[0]]
         yPredicted = regression.predict(xForPredict)
+        yPredicte = regression.predict(x)
+
+       #print("%s %s -> Score V=%f"%(name, symbol, r2_score(y, yPredicte)))
 
         # Add the prediction point to the graph
         plt.scatter(xForPredict, yPredicted, color="red", linewidths=5)
@@ -153,7 +167,65 @@ class ClassForTests(object):
         plt.show()
 
 
-    def regression(self):
+    def myRansac(self, XYList, id, typeY):
+        #n_samples = 1000
+        #n_outliers = 50#50
+
+
+        #X, y, coef = datasets.make_regression(n_samples=n_samples, n_features=1,
+        #                                      n_informative=1, noise=10,
+        #                                      coef=True, random_state=0)
+
+        #X = np.array([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15])[:,np.newaxis]
+        #y = np.array([2,4,6,8,10,12,14,16,18,20,22,24,26,28,30])
+
+        X = np.array(XYList[0])
+        y = np.array(XYList[1])
+
+        ## Add outlier data
+        #np.random.seed(0)
+        #X[:n_outliers] = 10 + 0.5 * np.random.normal(size=(n_outliers, 1))
+        #y[:n_outliers] = 10 * np.random.normal(size=n_outliers)
+
+        # Fit line using all data
+        lr = linear_model.LinearRegression()
+        lr.fit(X, y)
+
+        # Robustly fit linear model with RANSAC algorithm
+        ransac = linear_model.RANSACRegressor()
+        ransac.fit(X, y)
+        inlier_mask = ransac.inlier_mask_
+        outlier_mask = np.logical_not(inlier_mask)
+
+        # Predict data of estimated models
+        #line_X = np.arange(X.min(), X.max())[:, np.newaxis]
+        line_y = lr.predict(X)
+        line_y_ransac = ransac.predict(X)
+
+        ## Compare estimated coefficients
+        #print("Estimated coefficients (true, linear regression, RANSAC):")
+        #print(coef, lr.coef_, ransac.estimator_.coef_)
+        print(typeY, "=")
+        print("Linear R^2=", lr.score(X,y))
+        print("RANSAC R^2=", ransac.score(X[inlier_mask], y[inlier_mask]))
+
+        lw = 2
+        # Inlier points
+        plt.scatter(X[inlier_mask], y[inlier_mask], color='black', marker='.', label='Inliers', linewidth=5)
+        # Outlier points
+        plt.scatter(X[outlier_mask], y[outlier_mask], color='black', marker='.',label='Outliers', linewidth=3)
+        # Line of linear
+        plt.plot(X, line_y, linewidth=lw, label='Linear regressor')
+        # Lone of RANSAC
+        plt.plot(X, line_y_ransac, linewidth=lw, label='RANSAC regressor')
+
+        plt.legend(loc='lower right')
+        plt.xlabel("Input")
+        plt.ylabel("Response")
+        plt.show()
+
+
+    def regressionExample(self):
         # Load the diabetes dataset
         diabetes = datasets.load_diabetes()
         print(type(diabetes))

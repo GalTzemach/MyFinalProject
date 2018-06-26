@@ -516,7 +516,7 @@ class DBManager(metaclass=Singleton.Singleton):
         # Prepare SQL query 
         sql = """SELECT sentiment 
                  FROM tweets
-                 WHERE created_at LIKE \"%%%s%%\" and stock_id = %d""" % (date, id)
+                 WHERE created_at LIKE \"%s%%\" and stock_id = %d""" % (date, id)
         try:
             # Execute the SQL command
             cursor.execute(sql)

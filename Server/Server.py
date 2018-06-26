@@ -3,7 +3,7 @@ from DB import DBManager
 from Watson import Watson
 from PandasDatareader import PandasDatareader
 from Twitter import TestTwitterAPI
-import ClassForTests
+import ClassForTests, robustLinearModel
 from ClientServerNetwork import serverNetwork
 import sys
 
@@ -18,8 +18,9 @@ class Server():
 
         #TestTwitterAPI.TestTwitterAPI()
         ClassForTests.ClassForTests()
+        #robustLinearModel.robustLinearModel()
 
-        DBManager.DBManager().db.close()
+        #DBManager.DBManager().db.close()
 
 
 if __name__ == '__main__':

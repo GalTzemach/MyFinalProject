@@ -10,12 +10,12 @@ class Client():
     def __init__(self):
 
         clientNetwork.clientNetwork()
-        #isSignInAndID = signUpInGUILogic.start()
-        #isSignIn = isSignInAndID[0]
-        #if isSignIn:
-        #    self.ID = isSignInAndID[1][0]
-        #    ClientGUILogic.start(self.ID)
-        ClientGUILogic.start(1)
+        isSignInAndID = signUpInGUILogic.start()
+        isSignIn = isSignInAndID[0]
+        if isSignIn:
+            self.ID = isSignInAndID[1][0]
+            ClientGUILogic.start(self.ID[0])
+        #ClientGUILogic.start(1)
 
 
 if __name__ == '__main__':

@@ -284,6 +284,7 @@ class handleClient(threading.Thread):
         # Receiving the arg of request
         arg = pickle.loads(self.clientsocket.recv(vocabulary.BUFSIZE))
         userID = arg[0]
+        print("UID=%d"%(userID))
         stockID = arg[1]
 
         respons = DBManager.DBManager().addStockToUser(userID, stockID)
