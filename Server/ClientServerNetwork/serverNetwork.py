@@ -4,17 +4,44 @@ import time
 import Singleton
 import datetime
 from ClientServerNetwork import vocabulary
-from DB import DBManager
+from DB import DBManager, getXYForGraph
 import pickle
 import sys
 
 
 
-class serverNetwork(metaclass=Singleton.Singleton):
-    """description of class"""
+class serverNetwork(threading.Thread, metaclass=Singleton.Singleton):
 
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+        #super().__init__(**kwargs)
+        threading.Thread.__init__(self)
+
+        ## create a socket object
+        #serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
+
+        ## get local machine name
+        #host = socket.gethostname()                           
+
+        #port = 9999                                           
+
+        ## bind to the port
+        #serversocket.bind((host, port))                                  
+
+        ## queue up to 5 requests
+        #serversocket.listen(5) 
+
+        #print("The server is running... (%s)" % (datetime.datetime.now()))
+
+        #numThread = 1
+
+        #while True:
+        #   # establish a connection (blocking)
+        #   clientsocket,addr = serversocket.accept()  
+        #   t = handleClient(numThread, clientsocket, addr)
+        #   t.start()
+        #   numThread += 1
+
+    def run(self):
 
         # create a socket object
         serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
@@ -40,6 +67,7 @@ class serverNetwork(metaclass=Singleton.Singleton):
            t = handleClient(numThread, clientsocket, addr)
            t.start()
            numThread += 1
+
 
 
 class handleClient(threading.Thread):
@@ -93,6 +121,10 @@ class handleClient(threading.Thread):
                 self.deleteStockByIDs()
             elif recvType == vocabulary.ADD_STOCK_TO_USER:
                 self.addStockToUser()
+            elif recvType == vocabulary.GET_ALL_MESSAGES_BY_USER_ID:
+                self.getAllMessagesByUserID()
+            elif recvType == vocabulary.GET_XY_FOR_GRAPH:
+                self.getXYForGraphByID()
 
 
     def signUp(self):
@@ -194,7 +226,6 @@ class handleClient(threading.Thread):
             responsPickled = pickle.dumps(respons)
 
             size = sys.getsizeof(responsPickled)
-            print(size)
 
             # Sent size and respons
             self.clientsocket.send(pickle.dumps(size))
@@ -284,7 +315,6 @@ class handleClient(threading.Thread):
         # Receiving the arg of request
         arg = pickle.loads(self.clientsocket.recv(vocabulary.BUFSIZE))
         userID = arg[0]
-        print("UID=%d"%(userID))
         stockID = arg[1]
 
         respons = DBManager.DBManager().addStockToUser(userID, stockID)
@@ -300,3 +330,52 @@ class handleClient(threading.Thread):
         else:
             # Sent error
             self.clientsocket.send(pickle.dumps(vocabulary.ERROR))
+
+
+    def getAllMessagesByUserID(self):
+        # Receiving the arg of request
+        arg = pickle.loads(self.clientsocket.recv(vocabulary.BUFSIZE))
+        userID = arg
+
+        allPredictionIDs = DBManager.DBManager().getAllPredictionsIDByUserID(userID)
+        allPredictions = []
+        for predID in allPredictionIDs:
+            predDateRec = DBManager.DBManager().getPredictionByID(predID[0])[0]
+            stockID = predDateRec[0]
+            nameSymbol = DBManager.DBManager().getNameAndSymbolByID(stockID)
+            allPredictions.append((nameSymbol[0], nameSymbol[1] ,predDateRec[1], predDateRec[2]))
+
+        respons = tuple(allPredictions)
+
+        if respons:
+            responsPickled = pickle.dumps(respons)
+
+            size = sys.getsizeof(responsPickled)
+
+            # Sent size and respons
+            self.clientsocket.send(pickle.dumps(size))
+            self.clientsocket.send(responsPickled)
+        else:
+            # Sent error
+            self.clientsocket.send(pickle.dumps(vocabulary.ERROR))    
+            
+
+    def getXYForGraphByID(self):
+        # Receiving the arg of request
+        arg = pickle.loads(self.clientsocket.recv(vocabulary.BUFSIZE))
+        symbol = arg
+
+        respons = getXYForGraph.getXYForGraph(symbol, 3)##
+
+        if respons:
+            responsPickled = pickle.dumps(respons)
+
+            size = sys.getsizeof(responsPickled)
+
+            # Sent size and respons
+            self.clientsocket.send(pickle.dumps(size))
+            self.clientsocket.send(responsPickled)
+        else:
+            # Sent error
+            self.clientsocket.send(pickle.dumps(vocabulary.ERROR))  
+

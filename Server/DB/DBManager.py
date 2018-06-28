@@ -6,7 +6,6 @@ import datetime
 import json
 
 class DBManager(metaclass=Singleton.Singleton):
-    """description of class"""
 
     db = None
 
@@ -90,24 +89,7 @@ class DBManager(metaclass=Singleton.Singleton):
         return md5.hexdigest()
 
 
-    def getAllStocksID(self):
-        # prepare a cursor object using cursor() method
-        cursor = DBManager.db.cursor()
-        # Prepare SQL query 
-        sql = """SELECT id FROM stocks"""
-        try:
-            # Execute the SQL command
-            cursor.execute(sql)
 
-            # Fetch
-            results = cursor.fetchall()
-        except BaseException as exception:
-            print("--- MyError: getAllStocksID is failed")
-            print("--- Exception: ", exception)
-            return False
-        else:
-            #print("--- MySuccess: getAllStocksID is successfully.")
-            return results
 
 
     def getAllStocks(self):
@@ -326,7 +308,7 @@ class DBManager(metaclass=Singleton.Singleton):
             return True
 
 
-    def getLastDateByID(self, id):
+    def getLastPriceHistoryDateByID(self, id):
         # prepare a cursor object using cursor() method
         cursor = DBManager.db.cursor()
 
@@ -343,11 +325,34 @@ class DBManager(metaclass=Singleton.Singleton):
             # Fetch
             results = cursor.fetchone()
         except BaseException as exception:
-            print("--- MyError: getLastDateByID is failed")
+            print("--- MyError: getLastPriceHistoryDateByID is failed")
             print("--- Exception: ", exception)
             return False
         else:
-            #print("--- MySuccess: getLastDateByID is successfully.")
+            #print("--- MySuccess: getLastPriceHistoryDateByID is successfully.")
+            return results
+
+
+    def getLastTweetsDate(self):
+        # prepare a cursor object using cursor() method
+        cursor = DBManager.db.cursor()
+
+        # Prepare SQL query 
+        sql = """SELECT MAX(created_at) 
+                 FROM tweets"""
+
+        try:
+            # Execute the SQL command
+            cursor.execute(sql)
+
+            # Fetch
+            results = cursor.fetchone()
+        except BaseException as exception:
+            print("--- MyError: getLastTweetsDate is failed")
+            print("--- Exception: ", exception)
+            return False
+        else:
+            #print("--- MySuccess: getLastTweetsDate is successfully.")
             return results
 
 
@@ -419,7 +424,7 @@ class DBManager(metaclass=Singleton.Singleton):
 
 
     def getAllTweetsCountInDay(self, dateToSearch):
-        allId = self.getAllStocksID()
+        allId = self.getAllStocksIDs()
         if allId == False:
             print("--- MyError: getAllTweetsCountInDay is failed")
             return False
@@ -516,7 +521,8 @@ class DBManager(metaclass=Singleton.Singleton):
         # Prepare SQL query 
         sql = """SELECT sentiment 
                  FROM tweets
-                 WHERE created_at LIKE \"%s%%\" and stock_id = %d""" % (date, id)
+                 WHERE created_at LIKE \"%s%%\" and stock_id = %d and sentiment != -2 and sentiment != -3""" \
+                     % (date, id) #-2 and -3 is arror analyze
         try:
             # Execute the SQL command
             cursor.execute(sql)
@@ -805,3 +811,197 @@ class DBManager(metaclass=Singleton.Singleton):
         else:
             #print("addStockToUser is successfully.")
             return True
+
+
+    def addPrediction(self, stockID, today, linearRegressionY, RANSACY, recommendation, accuracy):
+        # prepare a cursor object using cursor() method
+        cursor = DBManager.db.cursor()
+
+        # Prepare SQL query 
+        sql = """INSERT INTO predictions
+                 (stock_id, date, linear_regression, ransac, recommendation, accuracy)
+                 VALUES ('%d', '%s', '%f', '%f', '%s', '%f')""" % \
+                 (stockID, today, linearRegressionY, RANSACY, recommendation, accuracy)
+        try:
+           # Execute the SQL command
+           cursor.execute(sql)
+           # Commit your changes in the database
+           DBManager.db.commit()
+        except BaseException as exception:
+           # Rollback in case there is any error
+           DBManager.db.rollback()
+           print("addPrediction is failed")
+           print(exception)
+           return False
+        else:
+            #print("addPrediction is successfully.")
+            return True
+
+
+    def isExsistPredictionByIDAndDate(self, stockID, date):
+        # prepare a cursor object using cursor() method
+        cursor = DBManager.db.cursor()
+        # Prepare SQL query 
+        sql = """SELECT count(id) 
+                 FROM predictions
+                 WHERE stock_id = %d and date LIKE \"%s%%\" """ % \
+                     (stockID, date)
+        try:
+            # Execute the SQL command
+            cursor.execute(sql)
+
+            # Fetch
+            results = cursor.fetchall()
+        except BaseException as exception:
+            print("--- MyError: isExsistPredictionByIDAndDate is failed")
+            print("--- Exception: ", exception)
+            return False
+        else:
+            #print("--- MySuccess: getAllStocksIDs is successfully.")
+            return results[0][0] > 0
+
+    def getPredictionByIDAndDate(self, stockID, date):
+        # prepare a cursor object using cursor() method
+        cursor = DBManager.db.cursor()
+        # Prepare SQL query 
+        sql = """SELECT * 
+                 FROM predictions
+                 WHERE stock_id = %d and date LIKE \"%s%%\" """ % \
+                     (stockID, date)
+        try:
+            # Execute the SQL command
+            cursor.execute(sql)
+
+            # Fetch
+            results = cursor.fetchall()
+        except BaseException as exception:
+            print("--- MyError: getPredictionByIDAndDate is failed")
+            print("--- Exception: ", exception)
+            return False
+        else:
+            #print("--- MySuccess: getPredictionByIDAndDate is successfully.")
+            if results:
+                return results
+            else:
+                return False
+
+
+    def getAllRegisterToStockByID(self, stockID):
+        # prepare a cursor object using cursor() method
+        cursor = DBManager.db.cursor()
+        # Prepare SQL query 
+        sql = """SELECT user_id 
+                 FROM users_stocks
+                 WHERE stock_id = %d """ % \
+                     (stockID)
+        try:
+            # Execute the SQL command
+            cursor.execute(sql)
+
+            # Fetch
+            results = cursor.fetchall()
+        except BaseException as exception:
+            print("--- MyError: getAllRegisterToStockByID is failed")
+            print("--- Exception: ", exception)
+            return False
+        else:
+            #print("--- MySuccess: getAllRegisterToStockByID is successfully.")
+            if results:
+                return results
+            else:
+                return False
+
+
+    def addUserPrediction(self, userID, predictionID):
+        # prepare a cursor object using cursor() method
+        cursor = DBManager.db.cursor()
+
+        # Prepare SQL query 
+        sql = """INSERT INTO users_predictions
+                 (user_prediction_id, user_id, prediction_id)
+                 VALUES ('%d', '%d', '%d')""" % \
+                 (int(str(userID) + str(predictionID)), userID, predictionID)
+        try:
+           # Execute the SQL command
+           cursor.execute(sql)
+           # Commit your changes in the database
+           DBManager.db.commit()
+        except BaseException as exception:
+           # Rollback in case there is any error
+           DBManager.db.rollback()
+           print("addUserPrediction is failed")
+           print(exception)
+           return False
+        else:
+            #print("addUserPrediction is successfully.")
+            return True
+
+
+    def getEmailByID(self, userID):
+        # prepare a cursor object using cursor() method
+        cursor = DBManager.db.cursor()
+        # Prepare SQL query 
+        sql = """SELECT email 
+                 FROM users
+                 WHERE id = %d """ % \
+                     (userID)
+        try:
+            # Execute the SQL command
+            cursor.execute(sql)
+
+            # Fetch
+            results = cursor.fetchall()
+        except BaseException as exception:
+            print("--- MyError: getEmailByID is failed")
+            print("--- Exception: ", exception)
+            return False
+        else:
+            #print("--- MySuccess: getEmailByID is successfully.")
+            return results
+
+
+    def getAllPredictionsIDByUserID(self, userID):
+        # prepare a cursor object using cursor() method
+        cursor = DBManager.db.cursor()
+        # Prepare SQL query 
+        sql = """SELECT prediction_id 
+                 FROM users_predictions
+                 WHERE user_id = %d """ % \
+                     (userID)
+        try:
+            # Execute the SQL command
+            cursor.execute(sql)
+
+            # Fetch
+            results = cursor.fetchall()
+        except BaseException as exception:
+            print("--- MyError: getAllPredictionsIDByUserID is failed")
+            print("--- Exception: ", exception)
+            return False
+        else:
+            #print("--- MySuccess: getAllPredictionsIDByUserID is successfully.")
+            return results
+
+
+    def getPredictionByID(self, predID):
+        # prepare a cursor object using cursor() method
+        cursor = DBManager.db.cursor()
+        # Prepare SQL query 
+        sql = """SELECT stock_id, date(date), recommendation 
+                 FROM predictions
+                 WHERE id = %d """ % \
+                     (predID)
+        try:
+            # Execute the SQL command
+            cursor.execute(sql)
+
+            # Fetch
+            results = cursor.fetchall()
+        except BaseException as exception:
+            print("--- MyError: getPredictionByID is failed")
+            print("--- Exception: ", exception)
+            return False
+        else:
+            #print("--- MySuccess: getPredictionByID is successfully.")
+            return results
+

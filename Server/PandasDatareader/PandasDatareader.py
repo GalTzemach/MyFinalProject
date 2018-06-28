@@ -22,14 +22,14 @@ class PandasDatareder(object):
         end = end.date()
         
         # Get all stock id
-        allStockID = DBManager.DBManager().getAllStocksID()
+        allStockID = DBManager.DBManager().getAllStocksIDs()
 
         if allStockID:
             for stockID in allStockID:
                 id = stockID[0]
 
                 # Getting the last date already exists
-                lastDate = DBManager.DBManager().getLastDateByID(id)
+                lastDate = DBManager.DBManager().getLastPriceHistoryDateByID(id)
                 if lastDate:
                     lastDate = lastDate[0]
 
@@ -37,6 +37,7 @@ class PandasDatareder(object):
                     lastDate = lastDate.date()
 
                 # Retrieves stock price history
+                pricesHistory = None
                 if lastDate == None: # No data
                     pricesHistory = self.retrieveStockPriceHistory(id, start, end)
                 elif lastDate >= start: # There is some date
@@ -46,7 +47,8 @@ class PandasDatareder(object):
                 elif lastDate == datetime.now(): # The date is up to date
                     pass
 
-                self.addPriceHistoryToDB(id, pricesHistory)
+                if pricesHistory:
+                    self.addPriceHistoryToDB(id, pricesHistory)
 
 
     def retrieveStockPriceHistory(self, id, start, end):
@@ -61,10 +63,7 @@ class PandasDatareder(object):
             results = web.DataReader(symbol, 'morningstar', start, end)
         except BaseException as exception:
              print("--- Exception: ", exception)
-             try:
-                 quit(1)
-             except SystemExit as se:
-                 print("Exit with %s" % (str(se)))
+             return False
 
 
         print(type(results))

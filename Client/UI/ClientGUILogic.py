@@ -2,6 +2,20 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidget, QTableWidge
 import sys
 from UI import clientGUI 
 from ClientServerNetwork import clientNetwork
+import matplotlib.pyplot as plt
+import datetime
+import copy
+import threading, _thread
+import json
+import pandas
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn import datasets, linear_model
+from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.pipeline import make_pipeline
+from sklearn.svm import SVR
+import seaborn
 
 class ClientGUILogic(QMainWindow, clientGUI.Ui_MainWindow):
 
@@ -30,6 +44,10 @@ class ClientGUILogic(QMainWindow, clientGUI.Ui_MainWindow):
 
         # ComboBox
         self.addStocks_comboBox.currentIndexChanged.connect(self.addStocks_comboBox_changed)
+
+        # Graph btn
+        self.showGraph_pushButton.clicked.connect(self.openGraph)
+
 
     def addStocks_comboBox_changed(self):
         numItem = self.addStocks_comboBox.count()
@@ -107,12 +125,64 @@ class ClientGUILogic(QMainWindow, clientGUI.Ui_MainWindow):
 
 
         # Fill regression tab
+            self.showGraph_pushButton.clicked.connect(self.openGraph)
 
 
-    def focusInEvent(self, QFocusEvent):
-        super().focusInEvent(QFocusEvent)
 
-        print ("in")
+    def openGraph(self):
+        plt.close()
+        # Get x and y for graph
+        xy = clientNetwork.clientNetwork().getXYForGraphByID(self.selectedSymbolFromAllStocks)
+        symbol = self.selectedSymbolFromAllStocks
+        # Open the Graph
+        X = np.array(xy[1])
+        y = np.array(xy[0])
+
+        # Linear Regression with OLS algorithm
+        linearReg = linear_model.LinearRegression()
+        linearReg.fit(X, y)
+        lineYLinearRegression = linearReg.predict(X)
+        linearR2 = linearReg.score(X,y)
+        print("Linear R^2=", linearR2)
+
+        # Robust linear regression with RANSAC algorithm
+        ransac = linear_model.RANSACRegressor()
+        ransac.fit(X, y)
+        inlier_mask = ransac.inlier_mask_
+        outlier_mask = np.logical_not(inlier_mask)
+        lineYRansac = ransac.predict(X)
+        ransacR2 = ransac.score(X[inlier_mask], y[inlier_mask])
+        print("RANSAC R^2=", ransacR2)
+
+        # Polynomial regression with Ridge algorithm
+        lw = 2
+        for count, degree in enumerate([5,6,7]):
+            model = make_pipeline(PolynomialFeatures(degree), linear_model.Ridge())
+            model.fit(X, y)
+            curveYPolynomial = model.predict(X)
+            plt.plot(X, curveYPolynomial, label="Polynomial degree %d" % degree)
+            print("Polynomial R^2= %f (degree:%d)"%(model.score(X, y), degree))
+
+        # Draw points
+        # Draw inlier points
+        plt.scatter(X[inlier_mask], y[inlier_mask], label='Inliers', color='black',  linewidth=4)
+        # Draw outlier points
+        plt.scatter(X[outlier_mask], y[outlier_mask], label='Outliers', color='black', linewidth=2)
+
+        # Draw lines
+        plt.plot(X, lineYLinearRegression, label='Linear regressor')
+        plt.plot(X, lineYRansac, label='RANSAC regressor')
+
+        # Title, Labels and legend
+        plt.title("%s \nLinear, Robust and Polynomial Regression" % (symbol))
+        plt.legend(loc='lower right')
+        plt.xlabel("Sentiment")
+        plt.ylabel("ChangClosePrice")
+
+        plt.show()
+
+
+
 
 
 
@@ -146,6 +216,16 @@ class ClientGUILogic(QMainWindow, clientGUI.Ui_MainWindow):
 
         # Add stocks ComboBox
         self.fillAddStocksComboBox()
+
+        # My messages
+        self.fillMyMessages()
+
+
+    def fillMyMessages(self):
+        allMessages = clientNetwork.clientNetwork().getAllMessagesByUserID(self.ID)
+        if allMessages:##
+            self.fillTable(self.myMessages_tableWidget, allMessages)
+
 
 
     def fillAddStocksComboBox(self):

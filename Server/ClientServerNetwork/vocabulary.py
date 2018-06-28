@@ -15,6 +15,9 @@ GET_MY_STOCKS_IDS = 'getMyStocksIDs'
 GET_STOCK_BY_ID = 'getStockByID'
 DELETE_STOCK_BY_IDS = 'deleteStockByIDs'
 ADD_STOCK_TO_USER ='addStockToUser'
+GET_ALL_MESSAGES_BY_USER_ID = 'getAllMessagesByUserID'
+GET_XY_FOR_GRAPH = 'GetXYForGraph'
+
 
 
 # Server answer

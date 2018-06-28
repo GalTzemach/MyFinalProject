@@ -12,7 +12,7 @@ class Twitter:
 
     thresholdTweets = 1000 
     maxTweets = 1000 
-    days = 11
+    daysAgo = 2#11
     waite = 0 #5
 
     def __init__(self, **kwargs):
@@ -60,17 +60,26 @@ class Twitter:
 
 
     def whatToSearch(self):
+        # Get last date of tweets that has already been filled 
+        lastDate = DBManager.DBManager().getLastTweetsDate()[0]
 
-        # Get current time and prepare the dateToSearch
-        now = datetime.datetime.now()
-        dateToSearch = now - datetime.timedelta(days = Twitter.days) # Sub days from date
+        # Get today and yesterday date
+        today = datetime.datetime.now()
+        yesterday = today - datetime.timedelta(days=1)
 
-        while dateToSearch < now:
+        if lastDate.date() < yesterday.date():
+            fromDate = lastDate
+        else:
+            print("The latest tweets are already in DB.")
+            return
+        #fromDate = today - datetime.timedelta(days = Twitter.days) 
+
+        while fromDate < today:
             # Set of ID to ignore them in this date
             besidesIDSet = set()
 
             # Get min tweet (count and id)
-            minTuple = self.getMinTweetCountAndIDByDay(dateToSearch) # [0]= count, [1]=id
+            minTuple = self.getMinTweetCountAndIDByDay(fromDate) # [0]= count, [1]=id
             if minTuple == False:
                 print("MyError: whatToSearch is faild in getMinTweetsInDay().")
                 return False
@@ -87,11 +96,11 @@ class Twitter:
                 symbol = stockNameSymbol[1]
 
                 # Print search details 
-                print("\n Search for Date: %s, for \"%s\" stock (symbol:%s, id:%d):" % (dateToSearch.date(), name, symbol, minID))
+                print("\n Search for Date: %s, for \"%s\" stock (symbol:%s, id:%d):" % (fromDate.date(), name, symbol, minID))
 
                 try:
                     # Get/Search tweets from Twitter by API
-                    results = self.getTweetsStandard7Days(minID, dateToSearch)
+                    results = self.getTweetsStandard7Days(minID, fromDate)
                     #results = self.getTweetsSandbox30Days(id, dateToSearch)
 
                 except BaseException as exception:
@@ -118,7 +127,7 @@ class Twitter:
                         pause.until(reset) 
                           
                         # Get/Search tweets again
-                        results = self.getTweetsStandard7Days(minID, dateToSearch)
+                        results = self.getTweetsStandard7Days(minID, fromDate)
                         #results = self.getTweetsSandbox30Days(id, dateToSearch)
 
                     else: # Is no rate limit exception
@@ -163,12 +172,12 @@ class Twitter:
                     elif insertedCount < uniqeIDCount: 
                         print("\tNot all unique(id) tweets has been inserted to DB.")
                     elif insertedCount == uniqeIDCount:
-                        print("\tAll unique(id) tweets of stock %s (%s) for date %s have been inserted to DB!" % (name, symbol, dateToSearch.date()))
+                        print("\tAll unique(id) tweets of stock %s (%s) for date %s have been inserted to DB!" % (name, symbol, fromDate.date()))
                         besidesIDSet.add(minID)
                 else:
                     besidesIDSet.add(minID)
 
-                minTuple = self.getMinTweetCountAndIDByDay(dateToSearch, besidesIDSet) # [0]= count, [1]=id
+                minTuple = self.getMinTweetCountAndIDByDay(fromDate, besidesIDSet) # [0]= count, [1]=id
                 if minTuple != False:
                     minCount = minTuple[0]
                     minID = minTuple[1]
@@ -176,7 +185,7 @@ class Twitter:
                     print("MyError: whatToSearch is faild in getMinTweetsInDay().")
                     return False
 
-            dateToSearch = dateToSearch + datetime.timedelta(days=1) # Add days to date
+            fromDate = fromDate + datetime.timedelta(days=1) # Add days to date
 
 
     def getTweetsStandard7Days(self, id, date):
@@ -430,7 +439,7 @@ class Twitter:
 
     def getNotQByID(self, currentId):
         notQ = ""
-        allID = DBManager.DBManager().getAllStocksID()
+        allID = DBManager.DBManager().getAllStocksIDs()
         for id in allID:
             if id[0] != currentId:
                 stockNameAndSymbol = DBManager.DBManager().getNameAndSymbolByID(id) #[0]=name, [1]=symbol
@@ -441,7 +450,7 @@ class Twitter:
 
 
     def getMinTweetCountAndIDByDay(self, date, besidesID=None):
-        allStocksID = DBManager.DBManager().getAllStocksID()
+        allStocksID = DBManager.DBManager().getAllStocksIDs()
         if allStocksID:
             min = Twitter.thresholdTweets
             idOfMin = None

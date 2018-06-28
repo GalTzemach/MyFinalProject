@@ -34,6 +34,9 @@
     <Compile Include="DB\DBManager.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="DB\getXYForGraph.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="DB\__init__.py">
       <SubType>Code</SubType>
     </Compile>
@@ -43,7 +46,16 @@
     <Compile Include="PandasDatareader\__init__.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="robustLinearModel.py">
+    <Compile Include="Prediction\prediction.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Prediction\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="SendMessages\sendMessages.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="SendMessages\__init__.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Server.py" />
@@ -69,6 +81,8 @@
     <Folder Include="DB\" />
     <Folder Include="C:\Users\Gal Tzemach\source\repos\MyFinalProject\Server\PandasDatareader\" />
     <Folder Include="PandasDatareader\" />
+    <Folder Include="Prediction\" />
+    <Folder Include="SendMessages\" />
     <Folder Include="Twitter\" />
     <Folder Include="Watson\" />
   </ItemGroup>

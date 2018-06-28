@@ -3,24 +3,61 @@ from DB import DBManager
 from Watson import Watson
 from PandasDatareader import PandasDatareader
 from Twitter import TestTwitterAPI
-import ClassForTests, robustLinearModel
 from ClientServerNetwork import serverNetwork
 import sys
+import time
+import threading, _thread
+
+import pandas
+import datetime
+from datetime import timedelta
+from Prediction import prediction
+from SendMessages import sendMessages
 
 class Server():
 
     def __init__(self):
 
-        #serverNetwork.serverNetwork()
-        #twitter = Twitter.Twitter()
-        #watson = Watson.Watson()
-        #pandasDatareder = PandasDatareader.PandasDatareder()
+        # Runing Server for clients on new thread
+        s = serverNetwork.serverNetwork()
+        s.start()
 
-        #TestTwitterAPI.TestTwitterAPI()
-        ClassForTests.ClassForTests()
-        #robustLinearModel.robustLinearModel()
+        while True:
+            # Fill DB
+            self.fillDB()
 
-        #DBManager.DBManager().db.close()
+            # Do prediction
+            prediction.prediction()
+
+            # Send messages to client
+            sendMessages.sendMessages()
+
+            # Sleep one day
+            print("Server(of prediction) sleep until %s"%str(datetime.datetime.now() + timedelta(days=1)))
+            time.sleep(86400) #86400 sec is a day
+
+        # Close resources
+        DBManager.DBManager().db.close()
+
+
+    def fillDB(self):
+        print("Start fill DB...")
+
+        # Fill price history of stocks
+        pandasDatareder = PandasDatareader.PandasDatareder()
+        print("Price history was filled.")
+
+        # Fill Tweets from Twitter
+        twitter = Twitter.Twitter()
+        print("Tweets was filled.")
+
+        # Analyze Tweets
+        watson = Watson.Watson()
+        print("Analyzed tweets was filled.")
+
+        print("DB was successfully filled")
+
+
 
 
 if __name__ == '__main__':

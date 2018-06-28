@@ -224,8 +224,6 @@ class clientNetwork(metaclass=Singleton.Singleton):
             print("getAllTweetsByStockID is failed or empty.")
             return False
 
-        print(sizeOrError)
-
         packets = []
         while True:
             packet = self.s.recv(vocabulary.BUFSIZE)
@@ -347,6 +345,56 @@ class clientNetwork(metaclass=Singleton.Singleton):
 
         if sizeOrError == vocabulary.ERROR:
             print("addStockToUser is failed.")
+            return False
+
+        packets = []
+        while True:
+            packet = self.s.recv(vocabulary.BUFSIZE)
+            packets.append(packet)   
+            try:
+                data =  pickle.loads(b"".join(packets))
+                return data
+            except:
+                pass
+
+
+    def getAllMessagesByUserID(self, userID):
+        # Sending the type of requst
+        self.s.send(pickle.dumps(vocabulary.GET_ALL_MESSAGES_BY_USER_ID))
+
+        # Sending the relevant arguments of request
+        self.s.send(pickle.dumps(userID))
+
+        # Get response
+        sizeOrError = pickle.loads(self.s.recv(vocabulary.BUFSIZE))
+
+        if sizeOrError == vocabulary.ERROR:
+            print("getAllMessagesByUserID is failed.")
+            return False
+
+        packets = []
+        while True:
+            packet = self.s.recv(vocabulary.BUFSIZE)
+            packets.append(packet)   
+            try:
+                data =  pickle.loads(b"".join(packets))
+                return data
+            except:
+                pass
+
+
+    def getXYForGraphByID(self, symbol):
+        # Sending the type of requst
+        self.s.send(pickle.dumps(vocabulary.GET_XY_FOR_GRAPH))
+
+        # Sending the relevant arguments of request
+        self.s.send(pickle.dumps(symbol))
+
+        # Get response
+        sizeOrError = pickle.loads(self.s.recv(vocabulary.BUFSIZE))
+
+        if sizeOrError == vocabulary.ERROR:
+            print("getAllMessagesByUserID is failed.")
             return False
 
         packets = []
