@@ -1,31 +1,25 @@
 import datetime
-import copy
-import threading, _thread
-import json
 import pandas
-import matplotlib.pyplot as plt
 import numpy as np
-from sklearn import datasets, linear_model
-from sklearn.metrics import mean_squared_error, r2_score
-from sklearn.preprocessing import PolynomialFeatures
-from sklearn.pipeline import make_pipeline
-from sklearn.svm import SVR
-import seaborn
-
+from sklearn import linear_model
 from DB import DBManager
 
+
 class prediction(object):
+
     shiftDays = 3
+
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+
         self.prediction(self.shiftDays)
 
 
     def prediction(self, shiftDays):
         today = datetime.datetime.now()
         if self.isBusinessDay(today):
-            # Get the previous shiftDays bussines day
+            # Get the previous shift bussines day
             prevShiftBD = self.getPreviousShiftBusinessDay(today, shiftDays)
 
             # Get all stocks IDs
@@ -33,29 +27,22 @@ class prediction(object):
             for stockID in allStocksIDs:
                 stockID = stockID[0]
 
-                # If not exsist
+                # If not exsist prediction
                 if not DBManager.DBManager().isExsistPredictionByIDAndDate(stockID, today.date()):
 
-                    ## Get allSentiment by date and id
-                    #allSentiment = DBManager.DBManager().getSentimentByDateAndId(prevShiftBD.date(), stockID)
-                    ## Do average
-                    #TotalSentiment = 0
-                    #for sentiment in allSentiment:
-                    #    TotalSentiment += sentiment[0]
-                    #avgSentiment = TotalSentiment / len(allSentiment)
-
-                    # Get changeClose and avgSentiment lists and x for prediction
+                    # Get changeClose and avgSentiment lists and x for
+                    # prediction
                     changeCloseAvgSentimentListAndX = self.getChangeCloseAndAvgSentimentListAndX(stockID, shiftDays)
                     changCloseList = changeCloseAvgSentimentListAndX[0]
                     avgSentimentList = changeCloseAvgSentimentListAndX[1]
                     xForPrediction = changeCloseAvgSentimentListAndX[2]
 
                     # Do regression
-                    if not (len(changCloseList) == 0 or len(avgSentimentList) == 0 or  xForPrediction == None):
+                    if not (len(changCloseList) == 0 or len(avgSentimentList) == 0 or xForPrediction == None):
                         linearRegressionAndRANSACYsAndR2 = self.linearRegressionAndRANSACYsAndR2(changCloseList, avgSentimentList, xForPrediction, stockID)
                         linearRegressionY = linearRegressionAndRANSACYsAndR2[0]
                         RANSACY = linearRegressionAndRANSACYsAndR2[1]
-                        linearR2 =  linearRegressionAndRANSACYsAndR2[2]
+                        linearR2 = linearRegressionAndRANSACYsAndR2[2]
                         ransacR2 = linearRegressionAndRANSACYsAndR2[3]
 
                         # Create prediction
@@ -66,8 +53,9 @@ class prediction(object):
                         elif linearRegressionY < 1 and RANSACY < 1:
                             recommendation = 'DUWN'
                         # Calculate accuracy
-                        accuracy = (linearR2 + ransacR2)/2
+                        accuracy = (linearR2 + ransacR2) / 2
                         # Add prediction to DB
+
                         DBManager.DBManager().addPrediction(stockID, today, linearRegressionY, RANSACY, recommendation, accuracy)
 
 
@@ -76,15 +64,11 @@ class prediction(object):
         closeDict = DBManager.DBManager().getDateCloseDictById(id)
 
         # Create changeClose from close
-        # Create list from dict & copy
         closeList = list(closeDict.items())
-
         changeCloseListTemp = []
         for i in range(len(closeList)):
             if i != 0:
-                changeCloseListTemp.append((closeList[i][0], closeList[i][1] / closeList[i-1][1])) #(key, value)
-
-        # Convert list to dict again
+                changeCloseListTemp.append((closeList[i][0], closeList[i][1] / closeList[i - 1][1])) #(key, value)
         changeCloseDict = dict(changeCloseListTemp)
 
         # Get avg sentiment
@@ -93,7 +77,6 @@ class prediction(object):
         # Create changeClose & avgSentiment lists with same dates entrys
         closeKeys = changeCloseDict.keys()
         avgSentimentKeys = avgSentiment.keys()
-
         changeCloseList = []
         avgSentimentList = []
 
@@ -106,7 +89,7 @@ class prediction(object):
         avgSentimentX = None
         if len(changeCloseList) >= shift and len(avgSentimentList) >= shift:
             for i in range(shift):
-                if i == shift-1:
+                if i == shift - 1:
                     avgSentimentX = avgSentimentList[len(avgSentimentList) - 1]
                 del changeCloseList[0]
                 del avgSentimentList[len(avgSentimentList) - 1]
@@ -133,7 +116,6 @@ class prediction(object):
         print("Linear R^2=", linearR2)
         linearRegressionY = linearReg.predict(xForPrediction)
 
-
         # Robust linear regression with RANSAC algorithm
         ransac = linear_model.RANSACRegressor()
         ransac.fit(X, y)
@@ -144,41 +126,7 @@ class prediction(object):
         print("RANSAC R^2=", ransacR2)
         ransacY = ransac.predict(xForPrediction)
 
-
-
-        ## Polynomial regression with Ridge algorithm
-        #lw = 2
-        #for count, degree in enumerate([5,6,7]):
-        #    model = make_pipeline(PolynomialFeatures(degree), linear_model.Ridge())
-        #    model.fit(X, y)
-        #    curveYPolynomial = model.predict(X)
-        #    plt.plot(X, curveYPolynomial, label="Polynomial degree %d" % degree)
-        #    print("Polynomial R^2= %f (degree:%d)"%(model.score(X, y), degree))
-
-        ## Draw points
-        ## Draw inlier points
-        #plt.scatter(X[inlier_mask], y[inlier_mask], label='Inliers', color='black',  linewidth=4)
-        ## Draw outlier points
-        #plt.scatter(X[outlier_mask], y[outlier_mask], label='Outliers', color='black', linewidth=2)
-
-        ## Draw lines
-        #plt.plot(X, lineYLinearRegression, label='Linear regressor')
-        #plt.plot(X, lineYRansac, label='RANSAC regressor')
-        ##plt.plot(X, y, label="Ground truth")
-
-        ## Draw predictions
-        #plt.scatter(xForPrediction, linearRegressionY, label='Linear Prediction', color='red', linewidth=5)
-        #plt.scatter(xForPrediction, ransacY, label='RANSAC Prediction', color='red', linewidth=5)
         print("Preditcion: \n\tLinear= %f \n\tRANSAC= %f" % (linearRegressionY, ransacY))
-
-
-        ## Title, Labels and legend
-        #plt.title("%s (%s) \nLinear, Robust and Polynomial Regression" % (name, symbol))
-        #plt.legend(loc='lower right')
-        #plt.xlabel("Sentiment")
-        #plt.ylabel("ChangClosePrice")
-
-        #plt.show()
 
         return (linearRegressionY, ransacY, linearR2, ransacR2)
 
@@ -190,7 +138,7 @@ class prediction(object):
     def getPreviousShiftBusinessDay(self, date, shiftDays):
         if shiftDays >= 1:
             prev = date - datetime.timedelta(days=1)
-            while len(pandas.bdate_range(prev, date)) < shiftDays+1:
+            while len(pandas.bdate_range(prev, date)) < shiftDays + 1:
                 prev = prev - datetime.timedelta(days=1)
             return prev
         elif shiftDays == 0:

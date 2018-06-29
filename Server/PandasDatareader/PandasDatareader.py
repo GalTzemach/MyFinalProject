@@ -1,8 +1,7 @@
 import pandas_datareader.data as web
 import datetime
 from DB import DBManager
-import matplotlib.pyplot as plt
-import seaborn as sb
+
 
 class PandasDatareder(object):
 
@@ -14,25 +13,20 @@ class PandasDatareder(object):
 
 
     def whatToretrieve(self):
-
-        # Set dates
         start = datetime.datetime(2018, 5, 1)
         start = start.date()
         end = datetime.datetime.now()
         end = end.date()
         
-        # Get all stock id
         allStockID = DBManager.DBManager().getAllStocksIDs()
 
         if allStockID:
             for stockID in allStockID:
                 id = stockID[0]
-
                 # Getting the last date already exists
                 lastDate = DBManager.DBManager().getLastPriceHistoryDateByID(id)
                 if lastDate:
                     lastDate = lastDate[0]
-
                 if type(lastDate) == 'datetime':
                     lastDate = lastDate.date()
 
@@ -46,42 +40,29 @@ class PandasDatareder(object):
                         pricesHistory = self.retrieveStockPriceHistory(id, lastDate, end)
                 elif lastDate == datetime.now(): # The date is up to date
                     pass
-
-                if pricesHistory:
+                if pricesHistory != None:
                     self.addPriceHistoryToDB(id, pricesHistory)
+        else:
+            print("PandasDatareder Error In whatToretrieve.")
 
 
     def retrieveStockPriceHistory(self, id, start, end):
-
         # Get symbol by id
         symbol = DBManager.DBManager().getSymbolByID(id)
         if symbol:
             symbol = symbol[0]
 
         try:
-            # Get stock price history
             results = web.DataReader(symbol, 'morningstar', start, end)
-        except BaseException as exception:
-             print("--- Exception: ", exception)
+        except BaseException as e:
+             print("Error in retrieveStockPriceHistory: ", e)
              return False
 
-
-        print(type(results))
         print(results)
-
-        #r0 = results.loc[symbol]
-        #print(type(r0))
-        #print(r0)
-
-        #sb.regplot(x = "Open", y = "Close", data = r0)
-        #plt.show()
-        #plt.close()
-
         return results
 
 
     def addPriceHistoryToDB(self, id, priceHistory):
-
         DBManager.DBManager().addPriceHistoryDataframe(id, priceHistory)
 
         

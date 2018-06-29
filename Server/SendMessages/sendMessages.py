@@ -2,11 +2,15 @@ from DB import DBManager
 import datetime
 import smtplib
 
+
 class sendMessages(object):
+
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+
         self.send()
+
 
     def send(self):
         # Get all stocks id
@@ -51,14 +55,14 @@ class sendMessages(object):
             server.login(user, pwd)
             server.sendmail(FROM, TO, message)
             server.close()
-            print ('successfully sent the mail')
+            print ("Email successfully sent to %s, on %s (%s) stock." % (recipient, nameSymbol[0], nameSymbol[0]))
         except BaseException as e:
             print("e:", e)
             print ("failed to send mail")
 
 
     def readEmailKeys(self):
-        path = "C:\\Users\\Gal Tzemach\\Desktop\\emailKeys.txt"
+        path = "C:\\myFinalProject\\emailKeys.txt"
         # Open a file
         try:
             dataBaseKeysFile = open(path,"r") # r Opens a file for reading only.

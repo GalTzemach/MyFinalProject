@@ -1,41 +1,37 @@
 import pymysql as PyMySQL
 import hashlib
-import encodings
 import Singleton
 import datetime
 import json
+
 
 class DBManager(metaclass=Singleton.Singleton):
 
     db = None
 
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        if self.readDataBaseKeysFromFile():
-            pass
-        else:
+        if not self.readDataBaseKeysFromFile():
             print("Could not connect to database.")
-
 
 
     def openDatabaseConnection(self, userName, password, DBName):
         try:
             DBManager.db = PyMySQL.connect("localhost", userName, password, DBName, use_unicode=True, charset="utf8mb4")
-        except BaseException as exception:
-            print(exception)
+        except BaseException as e:
+            print("Error in openDatabaseConnection: ", e)
             return False
-
         return True
 
 
     def readDataBaseKeysFromFile(self):
-        path = "C:\\Users\\Gal Tzemach\\Desktop\\dataBaseKeys.txt"
-        # Open a file
+        path = "C:\\myFinalProject\\dataBaseKeys.txt"
         try:
             dataBaseKeysFile = open(path,"r") # r Opens a file for reading only.
-        except FileNotFoundError:
-            print("--- MyError: In readDataBaseKeysFromFile function, File ", path, " not found.")
+        except FileNotFoundError as e:
+            print("Error In readDataBaseKeysFromFile: ", e)
             return False
 
         # Read all file
@@ -47,20 +43,22 @@ class DBManager(metaclass=Singleton.Singleton):
         # Close opened file
         dataBaseKeysFile.close()
 
-        if self.openDatabaseConnection(userName, password, DBName):
-            return True
-        else:
-            return False
+        return self.openDatabaseConnection(userName, password, DBName)
+
+
+    def stringToMD5(self, str):
+        md5 = hashlib.md5()
+        md5.update(str.encode('utf-8'))
+        return md5.hexdigest()
 
 
     def addNewUser(self, fName, lName, email, phoneNumber, password):
-
         passwordMD5 = self.stringToMD5(password)
 
         # prepare a cursor object using cursor() method
         cursor = DBManager.db.cursor()
 
-        # Prepare SQL query 
+        # Prepare SQL query
         sql = """INSERT INTO 
                  users
                  (first_name, last_name, email, phone_number, password)
@@ -72,30 +70,19 @@ class DBManager(metaclass=Singleton.Singleton):
            cursor.execute(sql)
            # Commit your changes in the database
            DBManager.db.commit()
-        except BaseException as exception:
+        except BaseException as e:
            # Rollback in case there is any error
            DBManager.db.rollback()
-           print("--- MyError: Insert user failed")
-           print("--- Exception: ", exception)
+           print("DB addNewUser is failed: ", e)
            return False
         else:
-            #print("--- MySuccess: Insert user successfully.")
             return True
-
-
-    def stringToMD5(self, str):
-        md5 = hashlib.md5()
-        md5.update(str.encode('utf-8'))
-        return md5.hexdigest()
-
-
-
 
 
     def getAllStocks(self):
         # prepare a cursor object using cursor() method
         cursor = DBManager.db.cursor()
-        # Prepare SQL query 
+        # Prepare SQL query
         sql = """SELECT name, symbol, country, industry, subsector 
                  FROM stocks"""
         try:
@@ -104,12 +91,10 @@ class DBManager(metaclass=Singleton.Singleton):
 
             # Fetch
             results = cursor.fetchall()
-        except BaseException as exception:
-            print("--- MyError: getAllStocks is failed")
-            print("--- Exception: ", exception)
+        except BaseException as e:
+            print("DB getAllStocks is failed: ", e)
             return False
         else:
-            #print("--- MySuccess: getAllStocks is successfully.")
             return results
 
 
@@ -117,7 +102,7 @@ class DBManager(metaclass=Singleton.Singleton):
         # prepare a cursor object using cursor() method
         cursor = DBManager.db.cursor()
 
-        # Prepare SQL query 
+        # Prepare SQL query
         sql = """SELECT COUNT(id) FROM tweets
                  WHERE stock_id = %d AND created_at LIKE \"%s%%\"""" % \
                  (id, date.date())
@@ -128,12 +113,10 @@ class DBManager(metaclass=Singleton.Singleton):
 
             # Fetch
             results = cursor.fetchall()
-        except BaseException as exception:
-            print("--- MyError: getCountTweetsOfStockInDay is failed")
-            print("--- Exception: ", exception)
+        except BaseException as e:
+            print("DB getCountTweetsOfStockInDay is failed: ", e)
             return False
         else:
-            #print("--- MySuccess: getCountTweetsOfStockInDay of id ", id, " is successfully.")
             return results[0][0]
 
 
@@ -141,7 +124,7 @@ class DBManager(metaclass=Singleton.Singleton):
         # prepare a cursor object using cursor() method
         cursor = DBManager.db.cursor()
 
-        # Prepare SQL query 
+        # Prepare SQL query
         sql = """SELECT name, symbol FROM stocks
                  WHERE id = %d""" % \
                  (id)
@@ -152,12 +135,10 @@ class DBManager(metaclass=Singleton.Singleton):
 
             # Fetch
             results = cursor.fetchone()
-        except BaseException as exception:
-            print("--- MyError: getNameAndSymbolByID is failed")
-            print("--- Exception: ", exception)
+        except BaseException as e:
+            print("DB getNameAndSymbolByID is failed: ", e)
             return False
         else:
-            #print("--- MySuccess: getNameAndSymbolByID is successfully.")
             return results
 
 
@@ -179,7 +160,7 @@ class DBManager(metaclass=Singleton.Singleton):
         else:
             followers_count = 0
 
-        # Prepare SQL query 
+        # Prepare SQL query
         sql = """INSERT INTO tweets
                  (tweet_id, stock_id, the_tweet, text, created_at, followers_count, next_request)
                  VALUES 
@@ -190,65 +171,20 @@ class DBManager(metaclass=Singleton.Singleton):
            cursor.execute(sql)
            # Commit your changes in the database
            DBManager.db.commit()
-        except BaseException as exception:
+        except BaseException as e:
 			# Rollback in case there is any error
             DBManager.db.rollback()
-            print("--- MyError: Insert tweet failed")
-            print("--- Exception: ", exception)
+            print("DB addTweet is failed: ", e)
             return False
         else:
-            #print("--- MySuccess: Insert tweet successfully.")
             return True
-
-
-   # def addTweet(self, id, tweet):
-   #     # prepare a cursor object using cursor() method
-   #     cursor = DBManager.db.cursor()
-
-   #     tweetStr = json.dumps(tweet)
-
-   #     tweet_id = tweet._json['id']
-   #     text = tweet._json['text']
-   #     created_at = tweet._json['created_at']
-   #     createdAtDateTime = datetime.datetime.strptime(created_at, "%a %b %d %H:%M:%S %z %Y")
-   #     createdAtTimestamp = createdAtDateTime.strftime('%Y-%m-%d %H:%M:%S') # Without +0000
-
-   #     if 'followers_count' in tweet._json['user']:
-   #         followers_count = tweet._json['user']['followers_count']
-   #     else:
-   #         followers_count = 0
-
-   #     myFilter = "term=nameLower OR nameCapitalize OR nameUpper AND #$symbol, lang=en, resultType=mixed, count=200" #Gal
-
-
-
-   #     # Prepare SQL query 
-   #     sql = """INSERT INTO tweets
-   #              (tweet_id, stock_id, the_tweet, text, created_at, followers_count, filter)
-   #              VALUES 
-   #              ('%d', '%d', '%s', '%s', '%s', '%d', '%s')""" % \
-   #              (tweet_id, id, PyMySQL.escape_string(tweetStr),PyMySQL.escape_string(text), createdAtTimestamp, followers_count, myFilter)
-   #     try:
-   #        # Execute the SQL command
-   #        cursor.execute(sql)
-   #        # Commit your changes in the database
-   #        DBManager.db.commit()
-   #     except BaseException as exception:
-			## Rollback in case there is any error
-   #         DBManager.db.rollback()
-   #         print("--- MyError: Insert tweet failed")
-   #         print("--- Exception: ", exception)
-   #         return False
-   #     else:
-   #         #print("--- MySuccess: Insert tweet successfully.")
-   #         return True
 
 
     def getTextAndIdsOfTweetToAnalyze(self):
         # prepare a cursor object using cursor() method
         cursor = DBManager.db.cursor()
 
-        # Prepare SQL query 
+        # Prepare SQL query
         sql = """SELECT text, id, stock_id
                  FROM tweets
                  WHERE ibm_analyzed_text IS NULL AND sentiment IS NULL
@@ -260,12 +196,10 @@ class DBManager(metaclass=Singleton.Singleton):
 
             # Fetch
             results = cursor.fetchone()
-        except BaseException as exception:
-            print("--- MyError: getTextAndIdsOfTweetToAnalyze is failed")
-            print("--- Exception: ", exception)
+        except BaseException as e:
+            print("DB getTextAndIdsOfTweetToAnalyze is failed: ", e)
             return False
         else:
-            #print("--- MySuccess: getTextAndIdsOfTweetToAnalyze is successfully.")
             return results
 
 
@@ -287,7 +221,7 @@ class DBManager(metaclass=Singleton.Singleton):
             else:
                 sentiment = -2
 
-        # Prepare SQL query 
+        # Prepare SQL query
         sql = """UPDATE tweets
                  SET ibm_analyzed_text = '%s', sentiment = '%f'
                  WHERE id = %d""" % \
@@ -297,14 +231,12 @@ class DBManager(metaclass=Singleton.Singleton):
            cursor.execute(sql)
            # Commit your changes in the database
            DBManager.db.commit()
-        except BaseException as exception:
+        except BaseException as e:
            # Rollback in case there is any error
            DBManager.db.rollback()
-           print("--- MyError: Insert analyzed to tweet failed")
-           print("--- Exception: ", exception)
+           print("DB addAnalyzeToTweet is failed: ", e)
            return False
         else:
-            #print("--- MySuccess: Insert analyzed to tweet is successfully.")
             return True
 
 
@@ -312,7 +244,7 @@ class DBManager(metaclass=Singleton.Singleton):
         # prepare a cursor object using cursor() method
         cursor = DBManager.db.cursor()
 
-        # Prepare SQL query 
+        # Prepare SQL query
         sql = """SELECT MAX(date) 
         FROM prices_history 
         WHERE stock_id=%d""" % \
@@ -324,12 +256,10 @@ class DBManager(metaclass=Singleton.Singleton):
 
             # Fetch
             results = cursor.fetchone()
-        except BaseException as exception:
-            print("--- MyError: getLastPriceHistoryDateByID is failed")
-            print("--- Exception: ", exception)
+        except BaseException as e:
+            print("DB getLastPriceHistoryDateByID is failed: ", e)
             return False
         else:
-            #print("--- MySuccess: getLastPriceHistoryDateByID is successfully.")
             return results
 
 
@@ -337,7 +267,7 @@ class DBManager(metaclass=Singleton.Singleton):
         # prepare a cursor object using cursor() method
         cursor = DBManager.db.cursor()
 
-        # Prepare SQL query 
+        # Prepare SQL query
         sql = """SELECT MAX(created_at) 
                  FROM tweets"""
 
@@ -347,12 +277,10 @@ class DBManager(metaclass=Singleton.Singleton):
 
             # Fetch
             results = cursor.fetchone()
-        except BaseException as exception:
-            print("--- MyError: getLastTweetsDate is failed")
-            print("--- Exception: ", exception)
+        except BaseException as e:
+            print("DB getLastTweetsDate is failed: ", e)
             return False
         else:
-            #print("--- MySuccess: getLastTweetsDate is successfully.")
             return results
 
 
@@ -360,7 +288,7 @@ class DBManager(metaclass=Singleton.Singleton):
         # prepare a cursor object using cursor() method
         cursor = DBManager.db.cursor()
 
-        # Prepare SQL query 
+        # Prepare SQL query
         sql = """SELECT 
         symbol 
         FROM stocks 
@@ -373,12 +301,10 @@ class DBManager(metaclass=Singleton.Singleton):
 
             # Fetch
             results = cursor.fetchone()
-        except BaseException as exception:
-            print("--- MyError: getSymbolByID is failed")
-            print("--- Exception: ", exception)
+        except BaseException as e:
+            print("DB getSymbolByID is failed: ", e)
             return False
         else:
-            #print("--- MySuccess: getSymbolByID is successfully.")
             return results
 
 
@@ -390,7 +316,7 @@ class DBManager(metaclass=Singleton.Singleton):
             date = row.name[1]
             open = row['Open']
             high = row['High']
-            low  = row['Low']
+            low = row['Low']
             close = row['Close']
             volume = row['Volume']
 
@@ -401,7 +327,7 @@ class DBManager(metaclass=Singleton.Singleton):
         # prepare a cursor object using cursor() method
         cursor = DBManager.db.cursor()
 
-        # Prepare SQL query 
+        # Prepare SQL query
         sql = """INSERT INTO prices_history
                  (stock_id, date, open, high, low, close, volume)
                  VALUES 
@@ -412,21 +338,19 @@ class DBManager(metaclass=Singleton.Singleton):
            cursor.execute(sql)
            # Commit your changes in the database
            DBManager.db.commit()
-        except BaseException as exception:
+        except BaseException as e:
            # Rollback in case there is any error
            DBManager.db.rollback()
-           print("--- MyError: Insert PricesHistory failed")
-           print("--- Exception: ", exception)
+           print("DB addPricesHistory is failed: ", e)
            return False
         else:
-            #print("--- MySuccess: Insert PricesHistory successfully.")
             return True
 
 
     def getAllTweetsCountInDay(self, dateToSearch):
         allId = self.getAllStocksIDs()
         if allId == False:
-            print("--- MyError: getAllTweetsCountInDay is failed")
+            print("DB getAllTweetsCountInDay is failed.")
             return False
 
         idCountDict = {}
@@ -434,7 +358,7 @@ class DBManager(metaclass=Singleton.Singleton):
         for id in allId:
             countTweets = self.getCountTweetsOfStockInDay(id[0], dateToSearch)
             if countTweets == False and countTweets != 0:
-                print("--- MyError: getAllTweetsCountInDay is failed")
+                print("DB getAllTweetsCountInDay is failed.")
                 return False
             else:
                 idCountDict[id[0]] = countTweets
@@ -446,7 +370,7 @@ class DBManager(metaclass=Singleton.Singleton):
         # prepare a cursor object using cursor() method
         cursor = DBManager.db.cursor()
 
-        # Prepare SQL query 
+        # Prepare SQL query
         sql = """SELECT date, close 
                  FROM prices_history
                  WHERE stock_id = %d""" % (id)
@@ -456,12 +380,10 @@ class DBManager(metaclass=Singleton.Singleton):
 
             # Fetch
             results = cursor.fetchall()
-        except BaseException as exception:
-            print("--- MyError: getDateCloseDictById is failed")
-            print("--- Exception: ", exception)
+        except BaseException as e:
+            print("DB getDateCloseDictById is failed: ", e)
             return False
         else:
-            #print("--- MySuccess: getDateCloseDictById is successfully.")
             dateClose = {}
             for res in results:
                 dateClose[res[0]] = res[1]
@@ -495,7 +417,7 @@ class DBManager(metaclass=Singleton.Singleton):
         # prepare a cursor object using cursor() method
         cursor = DBManager.db.cursor()
 
-        # Prepare SQL query 
+        # Prepare SQL query
         sql = """SELECT DISTINCT date(created_at) 
                  FROM tweets
                  WHERE stock_id = %d""" % (id)
@@ -505,12 +427,10 @@ class DBManager(metaclass=Singleton.Singleton):
 
             # Fetch
             results = cursor.fetchall()
-        except BaseException as exception:
-            print("--- MyError: getAllDatesOfTweetsById is failed")
-            print("--- Exception: ", exception)
+        except BaseException as e:
+            print("DB getAllDatesOfTweetsById is failed: ", e)
             return False
         else:
-            #print("--- MySuccess: getAllDatesOfTweetsById is successfully.")
             return results
 
 
@@ -518,24 +438,22 @@ class DBManager(metaclass=Singleton.Singleton):
         # prepare a cursor object using cursor() method
         cursor = DBManager.db.cursor()
 
-        # Prepare SQL query 
+        # Prepare SQL query
         sql = """SELECT sentiment 
                  FROM tweets
-                 WHERE created_at LIKE \"%s%%\" and stock_id = %d and sentiment != -2 and sentiment != -3""" \
-                     % (date, id) #-2 and -3 is arror analyze
+                 WHERE created_at LIKE \"%s%%\" and stock_id = %d and sentiment != -2 and sentiment != -3""" % (date, id) #-2 and -3 is arror analyze
         try:
             # Execute the SQL command
             cursor.execute(sql)
 
             # Fetch
             results = cursor.fetchall()
-        except BaseException as exception:
-            print("--- MyError: getSentimentByDateAndId is failed")
-            print("--- Exception: ", exception)
+        except BaseException as e:
+            print("DB getSentimentByDateAndId is failed: ", e)
             return False
         else:
-            #print("--- MySuccess: getSentimentByDateAndId is successfully.")
             return results
+
 
     def signIn(self, email, password):
         password = self.stringToMD5(password)
@@ -543,7 +461,7 @@ class DBManager(metaclass=Singleton.Singleton):
         # prepare a cursor object using cursor() method
         cursor = DBManager.db.cursor()
 
-        # Prepare SQL query 
+        # Prepare SQL query
         sql = """SELECT count(id) 
                  FROM users
                  WHERE email = \"%s\" and password = \"%s\" """ % (email, password)
@@ -553,9 +471,8 @@ class DBManager(metaclass=Singleton.Singleton):
 
             # Fetch
             results = cursor.fetchall()
-        except BaseException as exception:
-            print("--- MyError: signIn is failed")
-            print("--- Exception: ", exception)
+        except BaseException as e:
+            print("DB signIn is failed: ", e)
             return False
         else:
             if results[0][0] > 0:
@@ -568,7 +485,7 @@ class DBManager(metaclass=Singleton.Singleton):
         # prepare a cursor object using cursor() method
         cursor = DBManager.db.cursor()
 
-        # Prepare SQL query 
+        # Prepare SQL query
         sql = """UPDATE users
                     SET is_connect = '%d'
                     WHERE email = \"%s\" """ % \
@@ -578,14 +495,12 @@ class DBManager(metaclass=Singleton.Singleton):
             cursor.execute(sql)
             # Commit your changes in the database
             DBManager.db.commit()
-        except BaseException as exception:
+        except BaseException as e:
             # Rollback in case there is any error
             DBManager.db.rollback()
-            print("--- MyError: setIsConnect failed")
-            print("--- Exception: ", exception)
+            print("DB setIsConnect is failed: ", e)
             return False
         else:
-            #print("--- MySuccess: setIsConnect is successfully.")
             return True
 
 
@@ -593,7 +508,7 @@ class DBManager(metaclass=Singleton.Singleton):
         # prepare a cursor object using cursor() method
         cursor = DBManager.db.cursor()
 
-        # Prepare SQL query 
+        # Prepare SQL query
         sql = """SELECT id 
                  FROM users
                  WHERE email = \"%s\" """ % (email)
@@ -603,9 +518,8 @@ class DBManager(metaclass=Singleton.Singleton):
 
             # Fetch
             results = cursor.fetchall()
-        except BaseException as exception:
-            print("--- MyError: getIDByEmail is failed")
-            print("--- Exception: ", exception)
+        except BaseException as e:
+            print("DB getIDByEmail is failed: ", e)
             return False
         else:
             return results
@@ -615,7 +529,7 @@ class DBManager(metaclass=Singleton.Singleton):
         # prepare a cursor object using cursor() method
         cursor = DBManager.db.cursor()
 
-        # Prepare SQL query 
+        # Prepare SQL query
         sql = """SELECT first_name, last_name 
                  FROM users
                  WHERE id = %d """ % (ID)
@@ -625,9 +539,8 @@ class DBManager(metaclass=Singleton.Singleton):
 
             # Fetch
             results = cursor.fetchall()
-        except BaseException as exception:
-            print("--- MyError: getFullNameByID is failed")
-            print("--- Exception: ", exception)
+        except BaseException as e:
+            print("DB getFullNameByID is failed: ", e)
             return False
         else:
             return results
@@ -637,7 +550,7 @@ class DBManager(metaclass=Singleton.Singleton):
         # prepare a cursor object using cursor() method
         cursor = DBManager.db.cursor()
 
-        # Prepare SQL query 
+        # Prepare SQL query
         sql = """SELECT explanation 
                  FROM stocks
                  WHERE symbol = \"%s\" """ % (symbol)
@@ -647,9 +560,8 @@ class DBManager(metaclass=Singleton.Singleton):
 
             # Fetch
             results = cursor.fetchall()
-        except BaseException as exception:
-            print("--- MyError: getExplanationBySymbol is failed")
-            print("--- Exception: ", exception)
+        except BaseException as e:
+            print("DB getExplanationBySymbol is failed: ", e)
             return False
         else:
             return results
@@ -659,7 +571,7 @@ class DBManager(metaclass=Singleton.Singleton):
         # prepare a cursor object using cursor() method
         cursor = DBManager.db.cursor()
 
-        # Prepare SQL query 
+        # Prepare SQL query
         sql = """SELECT id 
                  FROM stocks
                  WHERE symbol = \"%s\" """ % (symbol)
@@ -669,9 +581,8 @@ class DBManager(metaclass=Singleton.Singleton):
 
             # Fetch
             results = cursor.fetchall()
-        except BaseException as exception:
-            print("--- MyError: getStockIDBySymbol is failed")
-            print("--- Exception: ", exception)
+        except BaseException as e:
+            print("DB getStockIDBySymbol is failed: ", e)
             return False
         else:
             return results
@@ -680,7 +591,7 @@ class DBManager(metaclass=Singleton.Singleton):
     def getAllTweetsByStockID(self, stockID):
         # prepare a cursor object using cursor() method
         cursor = DBManager.db.cursor()
-        # Prepare SQL query 
+        # Prepare SQL query
         sql = """SELECT created_at, followers_count, sentiment, text
                  FROM tweets
                  WHERE stock_id = %d """ % (stockID)
@@ -690,19 +601,17 @@ class DBManager(metaclass=Singleton.Singleton):
 
             # Fetch
             results = cursor.fetchall()
-        except BaseException as exception:
-            print("--- MyError: getAllTweetsByStockID is failed")
-            print("--- Exception: ", exception)
+        except BaseException as e:
+            print("DB getAllTweetsByStockID is failed: ", e)
             return False
         else:
-            #print("--- MySuccess: getAllStocks is successfully.")
             return results
 
 
     def getMyStocksIDs(self, ID):
         # prepare a cursor object using cursor() method
         cursor = DBManager.db.cursor()
-        # Prepare SQL query 
+        # Prepare SQL query
         sql = """SELECT stock_id
                  FROM users_stocks
                  WHERE user_id = %d """ % (ID)
@@ -712,19 +621,17 @@ class DBManager(metaclass=Singleton.Singleton):
 
             # Fetch
             results = cursor.fetchall()
-        except BaseException as exception:
-            print("--- MyError: getMyStocks is failed")
-            print("--- Exception: ", exception)
+        except BaseException as e:
+            print("DB getMyStocksIDs is failed: ", e)
             return False
         else:
-            #print("--- MySuccess: getMyStocks is successfully.")
             return results
 
 
     def getStockByID(self, stockID):
         # prepare a cursor object using cursor() method
         cursor = DBManager.db.cursor()
-        # Prepare SQL query 
+        # Prepare SQL query
         sql = """SELECT name, symbol, country, industry, subsector 
                  FROM stocks
                  WHERE id = %d """ % (stockID)
@@ -734,19 +641,17 @@ class DBManager(metaclass=Singleton.Singleton):
 
             # Fetch
             results = cursor.fetchall()
-        except BaseException as exception:
-            print("--- MyError: getStockByID is failed")
-            print("--- Exception: ", exception)
+        except BaseException as e:
+            print("DB getStockByID is failed: ", e)
             return False
         else:
-            #print("--- MySuccess: getStockByID is successfully.")
             return results
 
 
     def getAllStocksIDs(self):
         # prepare a cursor object using cursor() method
         cursor = DBManager.db.cursor()
-        # Prepare SQL query 
+        # Prepare SQL query
         sql = """SELECT id 
                  FROM stocks"""
         try:
@@ -755,12 +660,10 @@ class DBManager(metaclass=Singleton.Singleton):
 
             # Fetch
             results = cursor.fetchall()
-        except BaseException as exception:
-            print("--- MyError: getAllStocksIDs is failed")
-            print("--- Exception: ", exception)
+        except BaseException as e:
+            print("DB getAllStocksIDs is failed: ", e)
             return False
         else:
-            #print("--- MySuccess: getAllStocksIDs is successfully.")
             return results
 
 
@@ -768,7 +671,7 @@ class DBManager(metaclass=Singleton.Singleton):
         # prepare a cursor object using cursor() method
         cursor = DBManager.db.cursor()
 
-        # Prepare SQL query 
+        # Prepare SQL query
         sql = """DELETE FROM users_stocks
                  WHERE user_id = %d and stock_id = %d """ % \
                     (userID, stockID)
@@ -777,14 +680,12 @@ class DBManager(metaclass=Singleton.Singleton):
             cursor.execute(sql)
             # Commit your changes in the database
             DBManager.db.commit()
-        except BaseException as exception:
+        except BaseException as e:
             # Rollback in case there is any error
             DBManager.db.rollback()
-            print("deleteStockByIDs is failed")
-            print(exception)
+            print("DB deleteStockByIDs is failed: ", e)
             return False
         else:
-            #print("deleteStockByIDs is successfully.")
             return True
 
 
@@ -792,7 +693,7 @@ class DBManager(metaclass=Singleton.Singleton):
         # prepare a cursor object using cursor() method
         cursor = DBManager.db.cursor()
 
-        # Prepare SQL query 
+        # Prepare SQL query
         sql = """INSERT INTO users_stocks
                  (user_stock_id, user_id, stock_id)
                  VALUES ('%d', '%d', '%d')""" % \
@@ -802,14 +703,12 @@ class DBManager(metaclass=Singleton.Singleton):
            cursor.execute(sql)
            # Commit your changes in the database
            DBManager.db.commit()
-        except BaseException as exception:
+        except BaseException as e:
            # Rollback in case there is any error
            DBManager.db.rollback()
-           print("addStockToUser is failed")
-           print(exception)
+           print("DB addStockToUser is failed: ", e)
            return False
         else:
-            #print("addStockToUser is successfully.")
             return True
 
 
@@ -817,7 +716,7 @@ class DBManager(metaclass=Singleton.Singleton):
         # prepare a cursor object using cursor() method
         cursor = DBManager.db.cursor()
 
-        # Prepare SQL query 
+        # Prepare SQL query
         sql = """INSERT INTO predictions
                  (stock_id, date, linear_regression, ransac, recommendation, accuracy)
                  VALUES ('%d', '%s', '%f', '%f', '%s', '%f')""" % \
@@ -827,21 +726,19 @@ class DBManager(metaclass=Singleton.Singleton):
            cursor.execute(sql)
            # Commit your changes in the database
            DBManager.db.commit()
-        except BaseException as exception:
+        except BaseException as e:
            # Rollback in case there is any error
            DBManager.db.rollback()
-           print("addPrediction is failed")
-           print(exception)
+           print("DB addPrediction is failed: ", e)
            return False
         else:
-            #print("addPrediction is successfully.")
             return True
 
 
     def isExsistPredictionByIDAndDate(self, stockID, date):
         # prepare a cursor object using cursor() method
         cursor = DBManager.db.cursor()
-        # Prepare SQL query 
+        # Prepare SQL query
         sql = """SELECT count(id) 
                  FROM predictions
                  WHERE stock_id = %d and date LIKE \"%s%%\" """ % \
@@ -852,18 +749,17 @@ class DBManager(metaclass=Singleton.Singleton):
 
             # Fetch
             results = cursor.fetchall()
-        except BaseException as exception:
-            print("--- MyError: isExsistPredictionByIDAndDate is failed")
-            print("--- Exception: ", exception)
+        except BaseException as e:
+            print("DB isExsistPredictionByIDAndDate is failed: ", e)
             return False
         else:
-            #print("--- MySuccess: getAllStocksIDs is successfully.")
             return results[0][0] > 0
+
 
     def getPredictionByIDAndDate(self, stockID, date):
         # prepare a cursor object using cursor() method
         cursor = DBManager.db.cursor()
-        # Prepare SQL query 
+        # Prepare SQL query
         sql = """SELECT * 
                  FROM predictions
                  WHERE stock_id = %d and date LIKE \"%s%%\" """ % \
@@ -874,12 +770,10 @@ class DBManager(metaclass=Singleton.Singleton):
 
             # Fetch
             results = cursor.fetchall()
-        except BaseException as exception:
-            print("--- MyError: getPredictionByIDAndDate is failed")
-            print("--- Exception: ", exception)
+        except BaseException as e:
+            print("DB getPredictionByIDAndDate is failed: ", e)
             return False
         else:
-            #print("--- MySuccess: getPredictionByIDAndDate is successfully.")
             if results:
                 return results
             else:
@@ -889,7 +783,7 @@ class DBManager(metaclass=Singleton.Singleton):
     def getAllRegisterToStockByID(self, stockID):
         # prepare a cursor object using cursor() method
         cursor = DBManager.db.cursor()
-        # Prepare SQL query 
+        # Prepare SQL query
         sql = """SELECT user_id 
                  FROM users_stocks
                  WHERE stock_id = %d """ % \
@@ -900,12 +794,10 @@ class DBManager(metaclass=Singleton.Singleton):
 
             # Fetch
             results = cursor.fetchall()
-        except BaseException as exception:
-            print("--- MyError: getAllRegisterToStockByID is failed")
-            print("--- Exception: ", exception)
+        except BaseException as e:
+            print("DB getAllRegisterToStockByID is failed: ", e)
             return False
         else:
-            #print("--- MySuccess: getAllRegisterToStockByID is successfully.")
             if results:
                 return results
             else:
@@ -916,7 +808,7 @@ class DBManager(metaclass=Singleton.Singleton):
         # prepare a cursor object using cursor() method
         cursor = DBManager.db.cursor()
 
-        # Prepare SQL query 
+        # Prepare SQL query
         sql = """INSERT INTO users_predictions
                  (user_prediction_id, user_id, prediction_id)
                  VALUES ('%d', '%d', '%d')""" % \
@@ -926,21 +818,19 @@ class DBManager(metaclass=Singleton.Singleton):
            cursor.execute(sql)
            # Commit your changes in the database
            DBManager.db.commit()
-        except BaseException as exception:
+        except BaseException as e:
            # Rollback in case there is any error
            DBManager.db.rollback()
-           print("addUserPrediction is failed")
-           print(exception)
+           print("DB addUserPrediction is failed: ", e)
            return False
         else:
-            #print("addUserPrediction is successfully.")
             return True
 
 
     def getEmailByID(self, userID):
         # prepare a cursor object using cursor() method
         cursor = DBManager.db.cursor()
-        # Prepare SQL query 
+        # Prepare SQL query
         sql = """SELECT email 
                  FROM users
                  WHERE id = %d """ % \
@@ -951,19 +841,17 @@ class DBManager(metaclass=Singleton.Singleton):
 
             # Fetch
             results = cursor.fetchall()
-        except BaseException as exception:
-            print("--- MyError: getEmailByID is failed")
-            print("--- Exception: ", exception)
+        except BaseException as e:
+            print("DB getEmailByID is failed: ", e)
             return False
         else:
-            #print("--- MySuccess: getEmailByID is successfully.")
             return results
 
 
     def getAllPredictionsIDByUserID(self, userID):
         # prepare a cursor object using cursor() method
         cursor = DBManager.db.cursor()
-        # Prepare SQL query 
+        # Prepare SQL query
         sql = """SELECT prediction_id 
                  FROM users_predictions
                  WHERE user_id = %d """ % \
@@ -974,19 +862,17 @@ class DBManager(metaclass=Singleton.Singleton):
 
             # Fetch
             results = cursor.fetchall()
-        except BaseException as exception:
-            print("--- MyError: getAllPredictionsIDByUserID is failed")
-            print("--- Exception: ", exception)
+        except BaseException as e:
+            print("DB getAllPredictionsIDByUserID is failed: ", e)
             return False
         else:
-            #print("--- MySuccess: getAllPredictionsIDByUserID is successfully.")
             return results
 
 
     def getPredictionByID(self, predID):
         # prepare a cursor object using cursor() method
         cursor = DBManager.db.cursor()
-        # Prepare SQL query 
+        # Prepare SQL query
         sql = """SELECT stock_id, date(date), recommendation 
                  FROM predictions
                  WHERE id = %d """ % \
@@ -997,11 +883,9 @@ class DBManager(metaclass=Singleton.Singleton):
 
             # Fetch
             results = cursor.fetchall()
-        except BaseException as exception:
-            print("--- MyError: getPredictionByID is failed")
-            print("--- Exception: ", exception)
+        except BaseException as e:
+            print("DB getPredictionByID is failed: ", e)
             return False
         else:
-            #print("--- MySuccess: getPredictionByID is successfully.")
             return results
 

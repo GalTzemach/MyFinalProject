@@ -1,89 +1,73 @@
-from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidget, QTableWidgetItem, QComboBox
 import sys
-from UI import clientGUI 
-from ClientServerNetwork import clientNetwork
-import matplotlib.pyplot as plt
-import datetime
-import copy
-import threading, _thread
-import json
-import pandas
 import matplotlib.pyplot as plt
 import numpy as np
-from sklearn import datasets, linear_model
-from sklearn.metrics import mean_squared_error, r2_score
+import seaborn ##
+from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidget, QTableWidgetItem, QComboBox
+from sklearn import linear_model
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.pipeline import make_pipeline
-from sklearn.svm import SVR
-import seaborn
+from UI import clientGUI 
+from ClientServerNetwork import clientNetwork
+
 
 class ClientGUILogic(QMainWindow, clientGUI.Ui_MainWindow):
 
-    ID = None
+    userID = None
     selectedSymbolFromAllStocks = None
     selectedSymbolFromMyStocks = None
 
 
     def __init__(self):
         super(self.__class__, self).__init__()
+
+        # Setup UI of pyqt
         self.setupUi(self)  
 
-        # All Events
-
-        # Add stocks btn clicked
+        #Events
         self.addStocks_pushButton.clicked.connect(self.addStocks_pushButton_clicked)
-
-        # Item selection changed in all stocks table
-        self.allStocks_tableWidget.itemSelectionChanged.connect(self.allStocks_itemSelectionChangedEvent)
-
-        # Item selection changed in my stocks table
-        self.myStocks_tableWidget.itemSelectionChanged.connect(self.myStocks_itemSelectionChangedEvent)
-
-        # Delete stock btn
         self.deleteStocks_pushButton.clicked.connect(self.deleteStocks_pushButton_clicked)
-
-        # ComboBox
+        self.allStocks_tableWidget.itemSelectionChanged.connect(self.allStocks_itemSelectionChangedEvent)
+        self.myStocks_tableWidget.itemSelectionChanged.connect(self.myStocks_itemSelectionChangedEvent)
         self.addStocks_comboBox.currentIndexChanged.connect(self.addStocks_comboBox_changed)
-
-        # Graph btn
-        self.showGraph_pushButton.clicked.connect(self.openGraph)
+        self.showGraph_pushButton.clicked.connect(self.openGraphWindow)
 
 
     def addStocks_comboBox_changed(self):
+        # Get number item
         numItem = self.addStocks_comboBox.count()
+
         if numItem == 0:
             self.addStocks_pushButton.setEnabled(False)
         else:
             self.addStocks_pushButton.setEnabled(True)
 
 
-
     def getAllStocks(self):
         allStocks = clientNetwork.clientNetwork().getAllStocks()
+
         if isinstance(allStocks, bool) and allStocks == False:
-            print("Could not retrieve all stocks, Try again.")
+            print("Could not retrieve all stocks.")
             return False
+
         return allStocks
 
 
     def addStocks_pushButton_clicked(self):
         self.addStockToUser()
 
+
     def addStockToUser(self):
+        # Get symbol from combobox
         comboText = self.addStocks_comboBox.currentText()
         symbol = comboText.split(",")[1].lstrip()
 
         stockID = clientNetwork.clientNetwork().getStockIDBySymbol(symbol)
+
         if stockID:
-            if clientNetwork.clientNetwork().addStockToUser(self.ID, stockID[0][0]):
+            if clientNetwork.clientNetwork().addStockToUser(self.userID, stockID[0][0]):
+                # Update GUI
                 self.fillMyStocks()
                 self.fillAddStocksComboBox()
-            else:
-                pass
-        else:
-            pass
-        
-
 
 
     def closeEvent(self, QCloseEvent):
@@ -92,28 +76,27 @@ class ClientGUILogic(QMainWindow, clientGUI.Ui_MainWindow):
 
 
     def allStocks_itemSelectionChangedEvent(self):
-        # Get symbol that selected
-        self.selectedSymbolFromAllStocks = self.allStocks_tableWidget.selectedItems()[1].text()
-        print(self.selectedSymbolFromAllStocks)
+        # Get symbol
+        symbol = self.allStocks_tableWidget.selectedItems()[1].text()
+        self.selectedSymbolFromAllStocks = symbol
 
-        # Set visible true
+        # Set stockInfo_tabWidget visible
         self.stockInfo_tabWidget.setVisible(True)
 
-        # Fill tabWidgets
-        self.fillStockInfo(self.selectedSymbolFromAllStocks)
+        # Fill stock info
+        self.fillStockInfo()
 
 
-    def fillStockInfo(self, symbol):
+    def fillStockInfo(self):
         # Fill info tab
-        explanation = clientNetwork.clientNetwork().getExplanationBysymbol(symbol)
+        explanation = clientNetwork.clientNetwork().getExplanationBysymbol(self.selectedSymbolFromAllStocks)
         if explanation:
-            self.textBrowser.setText(explanation[0][0])
+            self.explanation_textBrowser.setText(explanation[0][0])
         else:
-            self.textBrowser.setText("")
-
+            self.explanation_textBrowser.setText("")
 
         # Fill tweets tab
-        stockID = clientNetwork.clientNetwork().getStockIDBySymbol(symbol)
+        stockID = clientNetwork.clientNetwork().getStockIDBySymbol(self.selectedSymbolFromAllStocks)
         if stockID:
             allTweets = clientNetwork.clientNetwork().getAllTweetsByStockID(stockID[0][0])
             if allTweets:
@@ -123,20 +106,21 @@ class ClientGUILogic(QMainWindow, clientGUI.Ui_MainWindow):
         else:
             self.tweets_tableWidget.setRowCount(0)
 
-
         # Fill regression tab
-            self.showGraph_pushButton.clicked.connect(self.openGraph)
+        # The btn is open new window
 
 
-
-    def openGraph(self):
+    def openGraphWindow(self):
+        # Close if open
         plt.close()
-        # Get x and y for graph
+
+        # Get x and y (The samples)
         xy = clientNetwork.clientNetwork().getXYForGraphByID(self.selectedSymbolFromAllStocks)
-        symbol = self.selectedSymbolFromAllStocks
-        # Open the Graph
         X = np.array(xy[1])
         y = np.array(xy[0])
+
+        if len(X) == 0 or len(y) == 0:
+            return
 
         # Linear Regression with OLS algorithm
         linearReg = linear_model.LinearRegression()
@@ -156,62 +140,57 @@ class ClientGUILogic(QMainWindow, clientGUI.Ui_MainWindow):
 
         # Polynomial regression with Ridge algorithm
         lw = 2
-        for count, degree in enumerate([5,6,7]):
+        for count, degree in enumerate([5,6]):
             model = make_pipeline(PolynomialFeatures(degree), linear_model.Ridge())
             model.fit(X, y)
             curveYPolynomial = model.predict(X)
             plt.plot(X, curveYPolynomial, label="Polynomial degree %d" % degree)
-            print("Polynomial R^2= %f (degree:%d)"%(model.score(X, y), degree))
+            print("Polynomial R^2= %f (degree:%d)" % (model.score(X, y), degree))
 
-        # Draw points
-        # Draw inlier points
+        # Draw plot
+        # Inlier points
         plt.scatter(X[inlier_mask], y[inlier_mask], label='Inliers', color='black',  linewidth=4)
-        # Draw outlier points
+        # Outlier points
         plt.scatter(X[outlier_mask], y[outlier_mask], label='Outliers', color='black', linewidth=2)
-
-        # Draw lines
+        # Lines
         plt.plot(X, lineYLinearRegression, label='Linear regressor')
         plt.plot(X, lineYRansac, label='RANSAC regressor')
-
         # Title, Labels and legend
-        plt.title("%s \nLinear, Robust and Polynomial Regression" % (symbol))
-        plt.legend(loc='lower right')
+        plt.title("Linear, Robust and Polynomial Regression \nFor %s" % (self.selectedSymbolFromAllStocks))
         plt.xlabel("Sentiment")
         plt.ylabel("ChangClosePrice")
+        plt.legend()##loc='lower right')
 
         plt.show()
-
-
-
-
-
 
 
     def showEvent(self, QShowEvent):
         super().showEvent(QShowEvent)
 
-        # Until stocks select
+        # Stick info is unvisible until some stock is selected
         self.stockInfo_tabWidget.setVisible(False)
 
+        # prepare GUI
         self.prepareGUI()
 
+        # Call to addStocks_comboBox_changed event
         self.addStocks_comboBox_changed()
 
 
     def prepareGUI(self):
         # Full name
-        fullName = clientNetwork.clientNetwork().getFullNameByID(self.ID)
+        fullName = clientNetwork.clientNetwork().getFullNameByID(self.userID)
         if fullName:
             firstName = fullName[0][0]
             lastName = fullName[0][1]
             self.helloUser_label.setText("Hello %s %s" % (firstName, lastName))
 
-        # All Stocks
+        # All stocks
         allStocks = self.getAllStocks()
         if allStocks:
             self.fillTable(self.allStocks_tableWidget, allStocks)
 
-        # My stocks table
+        # My stocks
         self.fillMyStocks()
 
         # Add stocks ComboBox
@@ -222,41 +201,42 @@ class ClientGUILogic(QMainWindow, clientGUI.Ui_MainWindow):
 
 
     def fillMyMessages(self):
-        allMessages = clientNetwork.clientNetwork().getAllMessagesByUserID(self.ID)
-        if allMessages:##
+        allMessages = clientNetwork.clientNetwork().getAllMessagesByUserID(self.userID)
+        if allMessages:
             self.fillTable(self.myMessages_tableWidget, allMessages)
-
+        else:
+            self.myMessages_tableWidget.setRowCount(0)
 
 
     def fillAddStocksComboBox(self):
         allStocksIDs = clientNetwork.clientNetwork().getAllStocksIDs()
         if allStocksIDs:
             allStocksIDs = list(allStocksIDs)
-            myStocksIDs = clientNetwork.clientNetwork().getMyStocksIDs(self.ID)
-            StocksList = []
 
-            if myStocksIDs or isinstance(myStocksIDs, tuple):
-                # Remove exists
+            myStocksIDs = clientNetwork.clientNetwork().getMyStocksIDs(self.userID)
+
+            StocksList = []
+            if myStocksIDs or isinstance(myStocksIDs, tuple):##
+                # Remove myStocks from allStocks
                 for myStockID in myStocksIDs:
-                    for i, stockID in enumerate(allStocksIDs):
-                        if myStockID[0] == stockID[0]:
+                    for i, allStockID in enumerate(allStocksIDs):
+                        if myStockID[0] == allStockID[0]:
                             del allStocksIDs[i]
                             break
 
             stocksListForComboBox = []
-            for stockID in allStocksIDs:
-                stock = clientNetwork.clientNetwork().getStockByID(stockID[0])[0]
+            for allStockID in allStocksIDs:
+                stock = clientNetwork.clientNetwork().getStockByID(allStockID[0])[0]
                 stocksListForComboBox.append(str(stock[0]) + ", \t" + str(stock[1]))
-            # Fill combo
+
             self.addStocks_comboBox.clear()
             self.addStocks_comboBox.addItems(stocksListForComboBox)
-
         else:
-            pass
+            self.addStocks_comboBox.clear()
 
 
     def fillMyStocks(self):
-        myStocks = self.getMyStocks(self.ID)
+        myStocks = self.getMyStocks(self.userID)
         if myStocks:
             self.fillTable(self.myStocks_tableWidget, myStocks)
         else:
@@ -276,28 +256,29 @@ class ClientGUILogic(QMainWindow, clientGUI.Ui_MainWindow):
         
 
     def myStocks_itemSelectionChangedEvent(self):
+        # Enable deleteStocks_pushButton
         self.deleteStocks_pushButton.setEnabled(True)
+
         if self.myStocks_tableWidget.selectedItems():
+            # Save selectedSymbolFromMyStocks
             self.selectedSymbolFromMyStocks = self.myStocks_tableWidget.selectedItems()[1].text()
         else:
+            # Disable deleteStocks_pushButton
             self.deleteStocks_pushButton.setEnabled(False)
        
 
     def deleteStocks_pushButton_clicked(self):
-        self.deleteStockBySymbol()
-
-    def deleteStockBySymbol(self):
-        ID = clientNetwork.clientNetwork().getStockIDBySymbol(self.selectedSymbolFromMyStocks)
-        if ID:
-            isDelete = clientNetwork.clientNetwork().deleteStockByIDs(self.ID, ID[0][0])
+        stockID = clientNetwork.clientNetwork().getStockIDBySymbol(self.selectedSymbolFromMyStocks)
+        if stockID:
+            isDelete = clientNetwork.clientNetwork().deleteStockByIDs(self.userID, stockID[0][0])
             if isDelete:
+                # Update GUI
                 self.fillMyStocks()
                 self.fillAddStocksComboBox()
             else:
                 print("Can not delete stock.")
         else:
             print("Can not delete stock.")
-
 
 
     def fillTable(self, table, data):
@@ -308,13 +289,10 @@ class ClientGUILogic(QMainWindow, clientGUI.Ui_MainWindow):
                 table.setItem(rowNumber, colNumber, QTableWidgetItem(str(colData)))
 
 
-
-
-
 def start(ID):
     app = QApplication(sys.argv) # A new instance of QApplication
     form = ClientGUILogic()   
-    form.ID = ID
+    form.userID = ID
     form.show()   
     app.exec_()                    
 

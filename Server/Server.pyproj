@@ -21,9 +21,6 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="ClassForTests.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="ClientServerNetwork\serverNetwork.py">
       <SubType>Code</SubType>
     </Compile>
@@ -62,7 +59,6 @@
     <Compile Include="Singleton.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Twitter\TestTwitterAPI.py" />
     <Compile Include="Twitter\Twitter.py">
       <SubType>Code</SubType>
     </Compile>

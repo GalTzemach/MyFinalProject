@@ -249,12 +249,12 @@ class Ui_MainWindow(object):
         self.label.setFont(font)
         self.label.setObjectName("label")
         self.verticalLayout_2.addWidget(self.label)
-        self.textBrowser = QtWidgets.QTextBrowser(self.info)
+        self.explanation_textBrowser = QtWidgets.QTextBrowser(self.info)
         font = QtGui.QFont()
         font.setPointSize(10)
-        self.textBrowser.setFont(font)
-        self.textBrowser.setObjectName("textBrowser")
-        self.verticalLayout_2.addWidget(self.textBrowser)
+        self.explanation_textBrowser.setFont(font)
+        self.explanation_textBrowser.setObjectName("explanation_textBrowser")
+        self.verticalLayout_2.addWidget(self.explanation_textBrowser)
         self.stockInfo_tabWidget.addTab(self.info, "")
         self.tweets = QtWidgets.QWidget()
         self.tweets.setObjectName("tweets")
@@ -317,7 +317,7 @@ class Ui_MainWindow(object):
         self.verticalLayout.addWidget(self.tabWidget)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 1066, 21))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 1066, 26))
         self.menubar.setObjectName("menubar")
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
@@ -325,8 +325,8 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
 
         self.retranslateUi(MainWindow)
-        self.tabWidget.setCurrentIndex(1)
-        self.stockInfo_tabWidget.setCurrentIndex(2)
+        self.tabWidget.setCurrentIndex(0)
+        self.stockInfo_tabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -372,7 +372,7 @@ class Ui_MainWindow(object):
         item.setText(_translate("MainWindow", "Sub Sector"))
         self.stockInfo_groupBox.setTitle(_translate("MainWindow", "Stock Information"))
         self.label.setText(_translate("MainWindow", "Explanation:"))
-        self.textBrowser.setHtml(_translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+        self.explanation_textBrowser.setHtml(_translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
 "</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:10pt; font-weight:400; font-style:normal;\">\n"

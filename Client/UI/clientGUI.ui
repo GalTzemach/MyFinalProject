@@ -34,7 +34,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="my_account_tab">
        <attribute name="title">
@@ -472,7 +472,7 @@
            <item>
             <widget class="QTabWidget" name="stockInfo_tabWidget">
              <property name="currentIndex">
-              <number>2</number>
+              <number>0</number>
              </property>
              <widget class="QWidget" name="info">
               <attribute name="title">
@@ -492,7 +492,7 @@
                 </widget>
                </item>
                <item>
-                <widget class="QTextBrowser" name="textBrowser">
+                <widget class="QTextBrowser" name="explanation_textBrowser">
                  <property name="font">
                   <font>
                    <pointsize>10</pointsize>
@@ -623,7 +623,7 @@ p, li { white-space: pre-wrap; }
      <x>0</x>
      <y>0</y>
      <width>1066</width>
-     <height>21</height>
+     <height>26</height>
     </rect>
    </property>
   </widget>

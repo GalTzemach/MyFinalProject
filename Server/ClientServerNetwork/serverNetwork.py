@@ -1,48 +1,21 @@
 import socket  
 import threading
-import time
 import Singleton
 import datetime
-from ClientServerNetwork import vocabulary
-from DB import DBManager, getXYForGraph
 import pickle
 import sys
-
+from ClientServerNetwork import vocabulary
+from DB import DBManager, getXYForGraph
 
 
 class serverNetwork(threading.Thread, metaclass=Singleton.Singleton):
 
+
     def __init__(self, **kwargs):
-        #super().__init__(**kwargs)
         threading.Thread.__init__(self)
 
-        ## create a socket object
-        #serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
-
-        ## get local machine name
-        #host = socket.gethostname()                           
-
-        #port = 9999                                           
-
-        ## bind to the port
-        #serversocket.bind((host, port))                                  
-
-        ## queue up to 5 requests
-        #serversocket.listen(5) 
-
-        #print("The server is running... (%s)" % (datetime.datetime.now()))
-
-        #numThread = 1
-
-        #while True:
-        #   # establish a connection (blocking)
-        #   clientsocket,addr = serversocket.accept()  
-        #   t = handleClient(numThread, clientsocket, addr)
-        #   t.start()
-        #   numThread += 1
 
     def run(self):
-
         # create a socket object
         serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
 
@@ -57,20 +30,23 @@ class serverNetwork(threading.Thread, metaclass=Singleton.Singleton):
         # queue up to 5 requests
         serversocket.listen(5) 
 
-        print("The server is running... (%s)" % (datetime.datetime.now()))
+        print("The server was set up in %s." % (datetime.datetime.now()))
 
         numThread = 1
 
         while True:
            # establish a connection (blocking)
-           clientsocket,addr = serversocket.accept()  
+           clientsocket,addr = serversocket.accept() 
+           
            t = handleClient(numThread, clientsocket, addr)
            t.start()
+
            numThread += 1
 
 
 
 class handleClient(threading.Thread):
+
 
     def __init__(self, numThread, clientsocket ,addr):
       threading.Thread.__init__(self)
@@ -81,17 +57,15 @@ class handleClient(threading.Thread):
 
 
     def run(self):
-        print("Got a connection from Thread%d %s" % (self.numThread, str(self.addr)))
+        print("Got a connection from %s, Thread %d." % (str(self.addr), self.numThread))
 
-        # Receiving requests 
+        # Receiving requests
         while True:
-
             # Receiving the type of request
             recvType = pickle.loads(self.clientsocket.recv(vocabulary.BUFSIZE))
-            print("The server received a request of type: %s" % (recvType))
+            print("The server received from Thread %d a request of type: %s." % (self.numThread, recvType))
 
             if recvType == vocabulary.EXIT:
-                #self.clientsocket.close()
                 break
             elif recvType == vocabulary.SIGNUP:
                 self.signUp()
@@ -176,7 +150,6 @@ class handleClient(threading.Thread):
             self.clientsocket.send(pickle.dumps(vocabulary.ERROR))
 
 
-
     def getIDByEmail(self):
         # Receiving the arg of request
         email = pickle.loads(self.clientsocket.recv(vocabulary.BUFSIZE))
@@ -205,6 +178,7 @@ class handleClient(threading.Thread):
             self.clientsocket.send(pickle.dumps(respons))
         else:
             self.clientsocket.send(pickle.dumps(vocabulary.ERROR))
+
 
     def getStockIDBySymbol(self):
         # Receiving the arg of request
@@ -308,7 +282,6 @@ class handleClient(threading.Thread):
         else:
             # Sent error
             self.clientsocket.send(pickle.dumps(vocabulary.ERROR))
-
 
 
     def addStockToUser(self):

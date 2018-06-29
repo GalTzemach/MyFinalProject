@@ -1,16 +1,15 @@
 import socket
-from ClientServerNetwork import vocabulary
 import Singleton
 import pickle
+from ClientServerNetwork import vocabulary
 from math import ceil
-import sys
+
 
 class clientNetwork(metaclass=Singleton.Singleton):
-    """description of class"""
+
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-
 
         # create a socket object
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
@@ -21,7 +20,14 @@ class clientNetwork(metaclass=Singleton.Singleton):
         port = 9999
 
         # connection to hostname on the port.
-        self.s.connect((host, port))                               
+        self.s.connect((host, port)) 
+        
+        
+    def exit(self):
+        # Sending the type of requst
+        self.s.send(pickle.dumps(vocabulary.EXIT))
+    
+        self.s.close()
 
 
     def signUp(self, arg):
@@ -41,7 +47,6 @@ class clientNetwork(metaclass=Singleton.Singleton):
             print("Email already exists, try with another email address.")
             return "Email already exists, try with another email address."
 
-
         
     def getAllStocks(self):
         # Sending the type of requst
@@ -59,10 +64,9 @@ class clientNetwork(metaclass=Singleton.Singleton):
             packet = self.s.recv(vocabulary.BUFSIZE)
             packets.append(packet)   
 
-        data =  pickle.loads(b"".join(packets))
+        data = pickle.loads(b"".join(packets))
 
         return data
-
 
 
     def signIn(self, arg):
@@ -82,12 +86,6 @@ class clientNetwork(metaclass=Singleton.Singleton):
             print("Signin failed, Try again.")
             return "Signin failed, Try again."
 
-
-    def exit(self):
-        # Sending the type of requst
-        self.s.send(pickle.dumps(vocabulary.EXIT))
-    
-        self.s.close()
 
     def setIsConnect(self, arg):
         # Sending the type of requst
@@ -179,37 +177,6 @@ class clientNetwork(metaclass=Singleton.Singleton):
             return response
 
 
-    #def getAllTweetsByStockID(self, stockID):
-    #    # Sending the type of requst
-    #    self.s.send(pickle.dumps(vocabulary.GET_ALL_TWEETS_BY_STOCKID))
-
-    #    # Sending the relevant arguments of request
-    #    self.s.send(pickle.dumps(stockID))
-
-    #    # Get response
-    #    sizeOrError = pickle.loads(self.s.recv(vocabulary.BUFSIZE))
-
-    #    if sizeOrError == vocabulary.ERROR:
-    #        print("getAllTweetsByStockID is failed.")
-    #        return False
-
-    #    print(sizeOrError, sizeOrError / vocabulary.BUFSIZE, ceil(sizeOrError / vocabulary.BUFSIZE))
-
-    #    packets = []
-    #    for i in range(ceil(sizeOrError / vocabulary.BUFSIZE)):
-    #        packet = self.s.recv(vocabulary.BUFSIZE)
-    #        packets.append(packet)   
-
-    #        print("%d) \n %d"%(i, sys.getsizeof(packet)))
-
-    #    print(sys.getsizeof(b"".join(packets)))
-    #    data =  pickle.loads(b"".join(packets))
-    #    print(sys.getsizeof(data))
-
-    #    return data
-
-
-
     def getAllTweetsByStockID(self, stockID):
         # Sending the type of requst
         self.s.send(pickle.dumps(vocabulary.GET_ALL_TWEETS_BY_STOCKID))
@@ -229,7 +196,7 @@ class clientNetwork(metaclass=Singleton.Singleton):
             packet = self.s.recv(vocabulary.BUFSIZE)
             packets.append(packet)   
             try:
-                data =  pickle.loads(b"".join(packets))
+                data = pickle.loads(b"".join(packets))
                 return data
             except:
                 pass
@@ -254,7 +221,7 @@ class clientNetwork(metaclass=Singleton.Singleton):
             packet = self.s.recv(vocabulary.BUFSIZE)
             packets.append(packet)   
             try:
-                data =  pickle.loads(b"".join(packets))
+                data = pickle.loads(b"".join(packets))
                 return data
             except:
                 pass
@@ -279,7 +246,7 @@ class clientNetwork(metaclass=Singleton.Singleton):
             packet = self.s.recv(vocabulary.BUFSIZE)
             packets.append(packet)   
             try:
-                data =  pickle.loads(b"".join(packets))
+                data = pickle.loads(b"".join(packets))
                 return data
             except:
                 pass
@@ -301,7 +268,7 @@ class clientNetwork(metaclass=Singleton.Singleton):
             packet = self.s.recv(vocabulary.BUFSIZE)
             packets.append(packet)   
             try:
-                data =  pickle.loads(b"".join(packets))
+                data = pickle.loads(b"".join(packets))
                 return data
             except:
                 pass
@@ -327,7 +294,7 @@ class clientNetwork(metaclass=Singleton.Singleton):
             packet = self.s.recv(vocabulary.BUFSIZE)
             packets.append(packet)   
             try:
-                data =  pickle.loads(b"".join(packets))
+                data = pickle.loads(b"".join(packets))
                 return data
             except:
                 pass
@@ -352,7 +319,7 @@ class clientNetwork(metaclass=Singleton.Singleton):
             packet = self.s.recv(vocabulary.BUFSIZE)
             packets.append(packet)   
             try:
-                data =  pickle.loads(b"".join(packets))
+                data = pickle.loads(b"".join(packets))
                 return data
             except:
                 pass
@@ -377,7 +344,7 @@ class clientNetwork(metaclass=Singleton.Singleton):
             packet = self.s.recv(vocabulary.BUFSIZE)
             packets.append(packet)   
             try:
-                data =  pickle.loads(b"".join(packets))
+                data = pickle.loads(b"".join(packets))
                 return data
             except:
                 pass
@@ -402,7 +369,8 @@ class clientNetwork(metaclass=Singleton.Singleton):
             packet = self.s.recv(vocabulary.BUFSIZE)
             packets.append(packet)   
             try:
-                data =  pickle.loads(b"".join(packets))
+                data = pickle.loads(b"".join(packets))
                 return data
             except:
                 pass
+

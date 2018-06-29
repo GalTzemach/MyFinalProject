@@ -1,8 +1,7 @@
 import re
-
-from PyQt5.QtWidgets import QApplication, QMainWindow
 import sys
-from UI import signUpInGUI, ClientGUILogic
+from PyQt5.QtWidgets import QApplication, QMainWindow
+from UI import signUpInGUI
 from ClientServerNetwork import clientNetwork
 
 
@@ -10,29 +9,32 @@ class signUpInGUILogic(QMainWindow, signUpInGUI.Ui_MainWindow):
 
     OK = "ok"
     isSignInn = False
-    ID = None
+    userID = None
+
 
     def __init__(self):
         super(self.__class__, self).__init__()
         self.setupUi(self)  
 
-        # All Events
-
-        # Sign Up
+        # Events
         self.signUp_pushButton.clicked.connect(self.signUp_pushButton_clicked)
-
-        # Sign In
         self.signIn_pushButton.clicked.connect(self.signIn_pushButton_clicked)
 
+
     def signUp_pushButton_clicked(self):
+        # Check values
         isValid = self.checkSignUpVlues()
         if isinstance(isValid, bool) and isValid == True:
-
+            # Try to signup
             isSignup = self.signUp()
             if isinstance(isSignup, bool) and isSignup == True:
+                # Switch to signin
                 self.toolBox.setCurrentIndex(1)
+
                 self.success_label.setText("The signup was successful, now signin.")
                 self.cleanSignUp()
+
+                # Remove signup
                 self.toolBox.removeItem(0)
             else:
                 self.error_label.setText(str(isSignup))
@@ -41,17 +43,19 @@ class signUpInGUILogic(QMainWindow, signUpInGUI.Ui_MainWindow):
 
 
     def signIn_pushButton_clicked(self):
+        # Check values
         isValid = self.checkSignInVlues()
         if isinstance(isValid, bool) and isValid == True:
-
+            # Try signin
             isSignin = self.signIn()
             if isinstance(isSignin, bool) and isSignin == True:
-
+                # Update flag
                 self.isSignInn = True
 
-                email = self.email_lineEdit_2.text()
-                self.ID = self.getIDByEmail(email)
+                # Save userID
+                self.userID = clientNetwork.clientNetwork().getIDByEmail(self.email_lineEdit_2.text())
 
+                # Close signin window
                 self.close()
             else:
                 self.error_label_2.setText(str(isSignin))
@@ -120,7 +124,6 @@ class signUpInGUILogic(QMainWindow, signUpInGUI.Ui_MainWindow):
         if re.match("(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)", email) == None:
             result += "\"%s\" is invalid" % (self.email_label.text())
 
-
         if result == "":
             return True
         else:
@@ -128,7 +131,6 @@ class signUpInGUILogic(QMainWindow, signUpInGUI.Ui_MainWindow):
 
 
     def checkLength(self, str, min, max, name):
-
         length = len(str)
 
         if length > max or length < min:
@@ -174,17 +176,7 @@ class signUpInGUILogic(QMainWindow, signUpInGUI.Ui_MainWindow):
         self.email_lineEdit.clear()
         self.phoneNumber_lineEdit.clear()
         self.password_lineEdit.clear()
-
         self.error_label.clear()
-
-
-    def getIDByEmail(self, email):
-        return clientNetwork.clientNetwork().getIDByEmail(email)
-
-
-
-    def closeEvent(self, QCloseEvent):
-        pass
 
 
 def start():
@@ -192,7 +184,7 @@ def start():
     form = signUpInGUILogic()                 
     form.show()   
     app.exec_()  
-    return (form.isSignInn, form.ID)
+    return (form.isSignInn, form.userID)
     
 
 

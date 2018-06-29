@@ -17,9 +17,7 @@ class Watson(object):
 
 
     def readWatsonKeysFromFile(self):
-
-        path = "C:\\Users\\Gal Tzemach\\Desktop\\watsonKeys.txt"
-        # Open a file
+        path = "C:\\myFinalProject\\watsonKeys.txt"
         try:
             watsonKeysFile = open(path,"r") # r Opens a file for reading only.
         except FileNotFoundError:
@@ -61,7 +59,6 @@ class Watson(object):
             if textAnalyzed:
                 DBManager.DBManager().addAnalyzeToTweet(textAnalyzed, id)
 
-            # Receives...  again
             textAndIds = DBManager.DBManager().getTextAndIdsOfTweetToAnalyze()
         else:
             print("There is no text to analyze.")
@@ -73,8 +70,7 @@ class Watson(object):
             raise Exception("The function analyze() received an None or empty text parameter.")
 
         try:
-            response = Watson.natural_language_understanding.analyze(
-                            text = text,
+            response = Watson.natural_language_understanding.analyze(text = text,
                             features = Features(emotion=EmotionOptions(), sentiment=SentimentOptions()),
                             #language="en",
                             return_analyzed_text = False)
@@ -88,7 +84,6 @@ class Watson(object):
 
 
     def analyzeWithTargets(self, text, name, symbol):
-
         if text == None or text == "":
             raise Exception("The function analyze() received an None or empty text parameter.")
 

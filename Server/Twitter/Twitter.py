@@ -5,7 +5,8 @@ from DB import DBManager
 from TwitterAPI import TwitterAPI, TwitterPager, TwitterResponse
 import pause 
 
-class Twitter:
+
+class Twitter(object):
 
     apiOfTwitter = None # Initialized in function readTwitterKeysFromFile()
     twitterApi = None # Initialized in function readTwitterKeysFromFile()
@@ -15,31 +16,24 @@ class Twitter:
     daysAgo = 2#11
     waite = 0 #5
 
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
         if self.readTwitterKeysFromFile():
-
-            ## Verify Credentials
-            #user = self.getverifyCredentials()
-
             # Start to search tweets 
             self.whatToSearch()
 
 
     def readTwitterKeysFromFile(self):
-
         # Path for keys
-        # Standard keys
-        #path = "C:\\Users\\Gal Tzemach\\Desktop\\twitterKeys.txt"
-        # Sandbox key
-        path = "C:\\Users\\Gal Tzemach\\Desktop\\twitterSandboxKeys.txt"
+        #path = "C:\\myFinalProject\\twitterKeys.txt"
+        path = "C:\\myFinalProject\\twitterSandboxKeys.txt"
 
-        # Open a file
         try:
             twitterKeysFile = open(path,"r") # r Opens a file for reading only.
-        except FileNotFoundError:
-            print("MyError: In readTwitterKeysFromFile function, File ", path, " not found.")
+        except FileNotFoundError as e:
+            print("Error In readTwitterKeysFromFile: ", e)
             return False
 
         # Read all file
@@ -72,7 +66,6 @@ class Twitter:
         else:
             print("The latest tweets are already in DB.")
             return
-        #fromDate = today - datetime.timedelta(days = Twitter.days) 
 
         while fromDate < today:
             # Set of ID to ignore them in this date
@@ -101,8 +94,6 @@ class Twitter:
                 try:
                     # Get/Search tweets from Twitter by API
                     results = self.getTweetsStandard7Days(minID, fromDate)
-                    #results = self.getTweetsSandbox30Days(id, dateToSearch)
-
                 except BaseException as exception:
                     if 'status_code' in exception.__dict__ and exception.status_code == 429: # Is a rate limit exception
                         print("Exception: %s %s" % (exception.__class__, exception))
@@ -111,10 +102,7 @@ class Twitter:
                         rateLimitDict = self.getRateLimit()
 
                         # Get reset time
-                        # Get reset time for /search/tweets endpoint
                         reset = rateLimitDict['resources']['search']['/search/tweets']['reset']
-                        ## Get reset time for /tweets/search/:product/:label endpoint
-                        #reset = rateLimitDict['resources']['tweets']['/tweets/search/:product/:label']['reset']
 
                         # Safety coefficient
                         reset += 10 
@@ -128,14 +116,13 @@ class Twitter:
                           
                         # Get/Search tweets again
                         results = self.getTweetsStandard7Days(minID, fromDate)
-                        #results = self.getTweetsSandbox30Days(id, dateToSearch)
 
                     else: # Is no rate limit exception
                         print("Exception: %s %s" % (exception.__class__, exception))
                         return False
                 
                 if results == False:
-                    print("MyError: whatToSearch is faild in getTweets...().")
+                    print("Error In Twitter In whatToSearch.")
                     return False
 
                 tweets = results[0]
@@ -156,7 +143,6 @@ class Twitter:
                     # Add tweet to database
                     if DBManager.DBManager().addTweet(minID, tweet, nextRequest) != True:
                         notInsertedCount += 1
-
 
                 uniqeIDCount = len(setOfID)
                 uniqeTextCount = len(setOfText)
@@ -267,176 +253,6 @@ class Twitter:
         return results
 
 
-    def getTweetsPremium30Days(self, id, date):
-
-        # Get name & symbol
-        stockNameSymbol = DBManager.DBManager().getNameAndSymbolByID(id) # [0]=name, [1]=symbol
-        if stockNameSymbol == False:
-            print("MyError: getTweets is faild in getNameAndSymbolByID().")
-            return False
-        name = stockNameSymbol[0]
-        symbol = stockNameSymbol[1]
-
-        # Preparing the parameters for the request
-        nameLower = name.lower()
-        nameCapitalize = name.capitalize()
-        nameUpper = name.upper()
-
-        symbolLower = symbol.lower()
-        symbolCapitalize = symbol.capitalize()
-        symbolUpper = symbol.upper()
-
-        resultType = 'mixed' # mixed recent popular is options
-        
-        count = 100
-        maxResultsSandbox = 100
-        maxResults = 500
-
-        if date.date() == datetime.datetime.now().date():
-            since = (date - datetime.timedelta(days=1)).date()
-            until = date.date()
-        elif date.date() <= datetime.datetime.now().date():
-            since = date.date()
-            until = (date + datetime.timedelta(days=1)).date()
-
-        PRODUCT = '30day'
-        LABEL = 'prob'
-        RESOURCE = 'tweets/search/%s/:%s' % (PRODUCT, LABEL)
-
-        q = "%s %s OR %s %s OR %s %s" % (nameLower, symbolUpper, nameCapitalize, symbolUpper, nameUpper, symbolUpper)
-        lang = "en"
-        query = "lang:%s %s" % (lang, q)
-        PARAMS = {'query':query, 'maxResults':maxResults, 'fromDate':since, 'toDate':until}
-
-        # Get the tweets from twitter
-        r = Twitter.twitterApi.request(RESOURCE, PARAMS)
-
-        # Get the response as a JSON object.
-        rJson = TwitterResponse(r, False).json()
-        #self.printDict(rJson)
-
-        next = None
-        next = rJson['next']
-
-        tweetsList = []
-        idSet = set()
-        countTweets = 0
-
-        for item in r.get_iterator():
-            if 'text' in item:
-                item['text'] = item['text'].replace("\n", " ")
-                countTweets += 1
-                tweetsList.append(item)
-                idSet.add(item['id_str'])
-                #print("%d) %s \nid: %s \ncreated_at: %s" % (countTweets, item['text'], item['id_str'], item['created_at']))
-            elif 'message' in item :
-               print ('ERROR message: %s, code:(%d).' % (item['message'], item['code']))
-               return False
-
-        print("%d tweets received." % (countTweets))
-        print("%d tweets is uniqe." % (len(idSet)))
-
-        if next:
-            nextRequest = "%s, {'query':%s, 'maxResults':%s, 'fromDate':%s, 'toDate':%s, 'next':%s}" % (RESOURCE, query, maxResults, since, until, next)
-
-        results = [tweetsList, nextRequest]
-        return results
-           
-
-    def getTweetsSandbox30Days(self, id, date):
-
-        # Get name & symbol
-        stockNameSymbol = DBManager.DBManager().getNameAndSymbolByID(id) # [0]=name, [1]=symbol
-        if stockNameSymbol == False:
-            print("MyError: getTweets is faild in getNameAndSymbolByID().")
-            return False
-        name = stockNameSymbol[0]
-        symbol = stockNameSymbol[1]
-
-        # Preparing the parameters for the request
-        nameLower = name.lower()
-        nameCapitalize = name.capitalize()
-        nameUpper = name.upper()
-
-        symbolLower = symbol.lower()
-        symbolCapitalize = symbol.capitalize()
-        symbolUpper = symbol.upper()
-
-        maxResultsSandbox = 100
-
-        if date.date() == datetime.datetime.now().date():
-            since = (date - datetime.timedelta(days=1)).date
-            until = date.date()
-        elif date.date() <= datetime.datetime.now().date():
-            since = date.date()
-            until = (date + datetime.timedelta(days=1)).date()
-
-        since = datetime.datetime.combine(since, datetime.datetime.min.time()).strftime("%Y%m%d%H%M")
-        #since = since.strftime("%Y%m%d%H%M")
-        until = datetime.datetime.combine(until, datetime.datetime.min.time()).strftime("%Y%m%d%H%M")
-        #until = until.strftime("%Y%m%d%H%M")
-
-
-        PRODUCT = '30day'
-        LABEL = 'prob'
-        RESOURCE = 'tweets/search/%s/:%s' % (PRODUCT, LABEL)
-
-        notQ = self.getNotQByID(id)
-        #q = "%s %s OR %s %s OR %s %s" % (nameLower, symbolUpper, nameCapitalize, symbolUpper, nameUpper, symbolUpper)
-        q = "%s %s #%s %s" % (nameLower, symbolLower, symbolLower, notQ)
-        lang = "en"
-        query = "lang:%s %s" % (lang, q)
-        PARAMS = {'query':query, 'maxResults':maxResultsSandbox, 'fromDate':since, 'toDate':until}
-
-        # Get the tweets from twitter
-        r = Twitter.twitterApi.request(RESOURCE, PARAMS)
-
-        # Get the response as a JSON object.
-        rJson = TwitterResponse(r, False).json()
-
-        next = None
-        if 'next' in rJson:
-            next = rJson['next']
-
-        tweetsList = []
-        idSet = set()
-        countTweets = 0
-
-        try:
-            for item in r.get_iterator():
-                if 'text' in item:
-                    if item['truncated'] == True:
-                        item['extended_tweet']['full_text'] = item['extended_tweet']['full_text'].replace("\n", " ")
-                        text = item['extended_tweet']['full_text']
-                    else:
-                        # Replace all new line with spaces
-                        item['text'] = item['text'].replace("\n", " ")
-                        text = item['text']
-
-                    countTweets += 1
-                    tweetsList.append(item)
-                    idSet.add(item['id_str'])
-
-                    print("%d) %s \n\tid: %s \n\tcreated_at: %s" % (countTweets, text, item['id_str'], item['created_at']))
-                elif 'message' in item :
-                   print ('ERROR message: %s, code:(%d).' % (item['message'], item['code']))
-                   return False
-        except BaseException as exception:
-            print("Exception: %s" % (exception))
-            return False
-
-        print("In getTweetsSandbox30Days() \n\t%d tweets received \n\t%d uniqe(id)" % (countTweets, len(idSet)))
-
-        if next:
-            nextRequest = "%s, {'query':%s, 'maxResults':%s, 'fromDate':%s, 'toDate':%s, 'next':%s}" % (RESOURCE, query, maxResultsSandbox, since, until, next)
-        else:
-            nextRequest = "%s, {'query':%s, 'maxResults':%s, 'fromDate':%s, 'toDate':%s, 'next':%s}" % (RESOURCE, query, maxResultsSandbox, since, until, None)
-
-
-        results = [tweetsList, nextRequest]
-        return results
-
-
     def getNotQByID(self, currentId):
         notQ = ""
         allID = DBManager.DBManager().getAllStocksIDs()
@@ -495,7 +311,7 @@ class Twitter:
 
 
     def writeToFile(self, data):
-        desktopPath = "C:\\Users\\Gal Tzemach\\Desktop"
+        desktopPath = "C:"
 
         # Open file with current datetime name
         fileToWrite = open(desktopPath + "\\" + str(datetime.datetime.now()) + ".txt", "a")
