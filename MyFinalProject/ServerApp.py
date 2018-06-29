@@ -1,4 +1,0 @@
-class ServerApp(object):
-    """description """
-
-
