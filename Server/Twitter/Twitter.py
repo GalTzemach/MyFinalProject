@@ -4,6 +4,8 @@ import datetime
 from DB import DBManager
 from TwitterAPI import TwitterAPI, TwitterPager, TwitterResponse
 import pause 
+import pandas
+
 
 
 class Twitter(object):
@@ -68,6 +70,10 @@ class Twitter(object):
             return
 
         while fromDate < today:
+            if not self.isBusinessDay(fromDate):
+                fromDate = fromDate + datetime.timedelta(days=1) # Add days to date
+                continue
+
             # Set of ID to ignore them in this date
             besidesIDSet = set()
 
@@ -332,3 +338,6 @@ class Twitter(object):
     def printDict(self, dict):
         print(json.dumps(dict, indent=4))
         return
+
+    def isBusinessDay(self, date):
+        return bool(len(pandas.bdate_range(date, date)))

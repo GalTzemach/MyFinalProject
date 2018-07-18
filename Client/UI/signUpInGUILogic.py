@@ -63,6 +63,12 @@ class signUpInGUILogic(QMainWindow, signUpInGUI.Ui_MainWindow):
             self.error_label_2.setText(str(isValid))
 
 
+    def closeEvent(self, QCloseEvent):
+        super().closeEvent(QCloseEvent)
+        if not self.isSignInn:
+            clientNetwork.clientNetwork().exit()
+
+
     def checkSignInVlues(self):
         result = ""
 

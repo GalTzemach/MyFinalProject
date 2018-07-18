@@ -23,7 +23,7 @@ class sendMessages(object):
                 prediction = DBManager.DBManager().getPredictionByIDAndDate(stockID, datetime.datetime.now().date())
                 # Get all users that register to this stock
                 allRegistered = DBManager.DBManager().getAllRegisterToStockByID(stockID)
-                if allRegistered:##
+                if allRegistered:
                     for userID in allRegistered:
                         userID = userID[0]
                         # Add user prediction to DB

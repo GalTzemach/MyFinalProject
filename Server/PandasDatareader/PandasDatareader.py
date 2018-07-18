@@ -31,7 +31,7 @@ class PandasDatareder(object):
                     lastDate = lastDate.date()
 
                 # Retrieves stock price history
-                pricesHistory = None
+                pricesHistory = False
                 if lastDate == None: # No data
                     pricesHistory = self.retrieveStockPriceHistory(id, start, end)
                 elif lastDate >= start: # There is some date
@@ -40,7 +40,7 @@ class PandasDatareder(object):
                         pricesHistory = self.retrieveStockPriceHistory(id, lastDate, end)
                 elif lastDate == datetime.now(): # The date is up to date
                     pass
-                if pricesHistory != None:
+                if not (isinstance(pricesHistory, bool) and pricesHistory == False):
                     self.addPriceHistoryToDB(id, pricesHistory)
         else:
             print("PandasDatareder Error In whatToretrieve.")

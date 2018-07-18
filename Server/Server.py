@@ -19,14 +19,14 @@ class Server():
         s.start()
 
         while True:
-            # Fill DB
-            self.fillDB()
+            ## Fill DB
+            #self.fillDB()
 
-            # Do prediction
-            prediction.prediction()
+            ## Do prediction
+            #prediction.prediction()
 
-            # Send messages to client
-            sendMessages.sendMessages()
+            ## Send messages to client
+            #sendMessages.sendMessages()
 
             # Sleep one day
             print("Server (of prediction) sleep until %s"%str(datetime.datetime.now() + timedelta(days=1)))
